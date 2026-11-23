@@ -535,3 +535,10 @@ h1:focus { outline: none; box-shadow: none; }
   background: var(--app-panel); border: 1px solid var(--app-line); box-shadow: var(--shadow-pop); }
 .login-card h1 { margin: 8px 0 0; font-family: var(--font-display); font-weight: 500; font-size: 32px; letter-spacing: -.01em; }
 .login-card p { margin: 0; }
+
+/* ── palette pickers ───────────────────────────────────────────────────── */
+.ink-picker { display: flex; flex-direction: column; gap: 6px; }
+.swatches-sm { gap: 8px; }
+.swatches-sm .swatch { width: 28px; height: 28px; }
+.swatch-theme { border-radius: 9px; }
+.themes { max-height: none; }

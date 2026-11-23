@@ -1,20 +1,19 @@
-<div class="swatches" role="group" aria-label="Paper color">
-    @foreach (var (id, name, hex) in Colors)
-    {
-        if (id == "paper" && !IncludePaper) continue;
-        <button type="button" class="swatch" style="background:@hex" aria-label="@name" title="@name" aria-pressed="@(Value == id ? "true" : "false")"
-                @onclick="() => ValueChanged.InvokeAsync(id)"></button>
-    }
-</div>
+@if (IncludePaper)
+{
+    <ColorSwatches Items="WithPaper" Value="@Value" ValueChanged="ValueChanged" Label="Paper color" Background="Bg" />
+}
+else
+{
+    <ColorSwatches Items="Palette.Papers" Value="@Value" ValueChanged="ValueChanged" Label="Paper color" />
+}
 
 @code {
     [Parameter] public string Value { get; set; } = "yellow";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public bool IncludePaper { get; set; }
 
-    private static readonly (string, string, string)[] Colors =
-    [
-        ("yellow", "Yellow", "#F6E7B8"), ("pink", "Pink", "#F9D7DF"), ("mint", "Mint", "#D5EBDC"),
-        ("sky", "Sky", "#D6E8F5"), ("lilac", "Lilac", "#E6E0FA"), ("paper", "No paper", "linear-gradient(135deg,#fff 45%,#d33 46% 54%,#fff 55%)"),
-    ];
+    private static readonly IReadOnlyList<Palette.Swatch> WithPaper = [.. Palette.Papers, new("paper", "No paper", "transparent")];
+
+    private static string Bg(Palette.Swatch s) =>
+        s.Id == "paper" ? "linear-gradient(135deg,#fff 45%,#d33 46% 54%,#fff 55%)" : s.Hex;
 }

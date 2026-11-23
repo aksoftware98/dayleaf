@@ -415,3 +415,208 @@
     --chip2-bg: #DCEADF; --chip2-ink: #24483A; --chip3-bg: #fff; --chip3-ink: #1F2421; --chip3-line: #D9CFBC; --photo-border: #FFFFFF; }
   .theme-night .sh-day { color: var(--ink); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Palette (ids from Domain/Palette.cs)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.tx-color-red { color: #C8382B; }     .sh-c-red { fill: #C8382B; }
+.tx-color-orange { color: #D9622B; }  .sh-c-orange { fill: #D9622B; }
+.tx-color-gold { color: #B98A12; }    .sh-c-gold { fill: #E0B23A; }
+.tx-color-green { color: #2E8B57; }   .sh-c-green { fill: #2E8B57; }
+.tx-color-teal { color: #138A8A; }    .sh-c-teal { fill: #138A8A; }
+.tx-color-blue { color: #2F6FDE; }    .sh-c-blue { fill: #2F6FDE; }
+.tx-color-indigo { color: #3F4FB5; }  .sh-c-indigo { fill: #3F4FB5; }
+.tx-color-purple { color: #7B4FC0; }  .sh-c-purple { fill: #7B4FC0; }
+.tx-color-pink { color: #D24D8F; }    .sh-c-pink { fill: #E87AAE; }
+.tx-color-brown { color: #7A4E2D; }   .sh-c-brown { fill: #7A4E2D; }
+.tx-color-gray { color: #6B6F72; }    .sh-c-gray { fill: #9AA0A4; }
+.tx-color-white { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,.35); } .sh-c-white { fill: #FFFFFF; }
+
+.tx-font-print { font-family: 'Patrick Hand', 'Caveat', cursive; font-size: 1.2em; line-height: 1.45; }
+.tx-font-classic { font-family: 'Playfair Display', Georgia, serif; }
+
+/* papers for notes & checklists */
+.note-lemon, .cl-lemon { background: #FBF1A0; }
+.note-peach, .cl-peach { background: #FBDCC4; }
+.note-coral, .cl-coral { background: #F7C6BC; }
+.note-sage, .cl-sage { background: #DDE5CF; }
+.note-kraft, .cl-kraft { background: #D9BF97; }
+.note-cloud, .cl-cloud { background: #E6E8EB; }
+.note-white, .cl-white { background: #FFFFFF; }
+.note-ink, .cl-ink { background: #2B2F33; color: #F4F1EA; }
+.note-ink .note-title, .cl-ink .cl-title { color: #F4F1EA; }
+.cl-ink li.done .cl-box { background: #F4F1EA; border-color: #F4F1EA; color: #2B2F33; }
+
+/* tape colours & patterns */
+.tp-peach { background: rgba(246, 196, 158, .78); }
+.tp-coral { background: rgba(242, 160, 143, .75); }
+.tp-sage { background: rgba(185, 201, 158, .78); }
+.tp-kraft { background: rgba(200, 165, 119, .85); }
+.tp-white { background: rgba(255, 255, 255, .75); }
+.tp-black { background: rgba(43, 47, 51, .82); }
+.tp-pat-gingham { background-image: linear-gradient(rgba(255,255,255,.45) 50%, transparent 50%), linear-gradient(90deg, rgba(255,255,255,.45) 50%, transparent 50%); background-size: 10px 10px; }
+.tp-pat-zigzag { background-image: linear-gradient(135deg, rgba(255,255,255,.55) 25%, transparent 25%), linear-gradient(225deg, rgba(255,255,255,.55) 25%, transparent 25%); background-size: 12px 12px; }
+.tp-pat-hearts { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='white' fill-opacity='.7' d='M12 21s-7-4.5-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 6c-2.3 4.5-9.3 9-9.3 9z'/%3E%3C/svg%3E"); background-size: 14px 14px; }
+
+/* photo filters */
+.ph-fx-golden img { filter: sepia(.35) saturate(1.4) hue-rotate(-8deg) brightness(1.06); }
+.ph-fx-dream img { filter: brightness(1.12) contrast(.88) saturate(1.15) blur(.3px); }
+.ph-fx-noir img { filter: grayscale(1) contrast(1.45) brightness(.92); }
+.ph-fx-sepia img { filter: sepia(.85) contrast(1.05); }
+
+/* dividers */
+.dv-double::before { content: ''; width: 100%; height: 6px; border-top: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; opacity: .6; }
+.dv-dashed::before { content: ''; width: 100%; height: 0; border-top: 2px dashed currentColor; opacity: .6; }
+.dv-hearts span, .dv-leaves span { font-size: 15px; letter-spacing: .9em; color: var(--accent); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Themes, part 2
+   ═══════════════════════════════════════════════════════════════════════════ */
+.theme-blossom {
+  --paper: #FFF5F6; --paper-pattern: radial-gradient(rgba(201, 74, 116, .10) 1px, transparent 1.3px);
+  --ink: #4A2030; --ink-soft: #55293A; --muted: #8A5468;
+  --accent: #C94A74; --accent2: #7FA889; --accent2-ink: #3F6B4B;
+  --rule: #C94A74; --foot-rule: #F0CFD9;
+  --chip-bg: #FBDCE6; --chip-ink: #8E2A50; --chip2-bg: #DCEBDF; --chip2-ink: #2F5A3B;
+  --chip3-bg: #FFFFFF; --chip3-ink: #4A2030; --chip3-line: #F0CFD9;
+  --tape: rgba(242, 163, 190, .7); --note-bg: #FCE4EC;
+  --font-title: 'Playfair Display', Georgia, serif; --title-style: italic; --title-weight: 500;
+  --photo-radius: 14px; --photo-shadow: 0 16px 28px -14px rgba(120, 40, 70, .4);
+}
+.theme-blossom .sheet-deco {
+  background:
+    radial-gradient(ellipse 34px 22px at 88% 6%, rgba(242, 163, 190, .55) 60%, transparent 62%),
+    radial-gradient(ellipse 22px 15px at 80% 13%, rgba(242, 163, 190, .45) 60%, transparent 62%),
+    radial-gradient(ellipse 18px 12px at 94% 16%, rgba(242, 163, 190, .40) 60%, transparent 62%),
+    radial-gradient(ellipse 26px 17px at 6% 94%, rgba(242, 163, 190, .40) 60%, transparent 62%),
+    radial-gradient(circle at 100% 0%, rgba(252, 220, 230, .9) 0 160px, transparent 260px);
+}
+
+.theme-matcha {
+  --paper: #F3F5EA; --paper-pattern: radial-gradient(rgba(85, 122, 53, .22) 1px, transparent 1.3px);
+  --ink: #223020; --ink-soft: #2C3B29; --muted: #5B6A55;
+  --accent: #557A35; --accent2: #C08F4F; --accent2-ink: #7A5524;
+  --rule: #223020; --foot-rule: #CBD4B8;
+  --chip-bg: #E3EBCF; --chip-ink: #3A5420; --chip2-bg: #F3E3C9; --chip2-ink: #6E4A1A;
+  --chip3-bg: #FFFFFF; --chip3-ink: #223020; --chip3-line: #CBD4B8;
+  --tape: rgba(185, 201, 158, .75); --note-bg: #E8EFD5;
+  --photo-radius: 4px;
+}
+.theme-matcha .sheet-deco { background: radial-gradient(circle at 92% 8%, rgba(85, 122, 53, .14) 0 90px, transparent 91px); }
+
+.theme-noir {
+  --paper: #FFFFFF; --paper-pattern: none;
+  --ink: #111111; --ink-soft: #1C1C1C; --muted: #555555;
+  --accent: #111111; --accent2: #E03A2C; --accent2-ink: #C02A1E;
+  --rule: #111111; --foot-rule: #111111;
+  --chip-bg: #111111; --chip-ink: #FFFFFF; --chip2-bg: #E03A2C; --chip2-ink: #FFFFFF;
+  --chip3-bg: #FFFFFF; --chip3-ink: #111111; --chip3-line: #111111;
+  --tape: rgba(17, 17, 17, .18); --note-bg: #F2F2F2;
+  --font-title: 'Playfair Display', Georgia, serif; --title-weight: 800; --title-size: 56px;
+  --photo-radius: 0px; --photo-shadow: none; --shadow-soft: 0 0 0 1.5px #111;
+}
+.theme-noir .sh-rule { height: 6px; top: 66px; }
+.theme-noir .sh-day { font-weight: 900; letter-spacing: -.06em; }
+.theme-noir .sh-month-name { font-style: normal; text-transform: uppercase; letter-spacing: .08em; font-size: 28px; }
+.theme-noir .sh-chip { border-radius: 0; }
+.theme-noir .ph-sticker, .theme-noir .ph-taped, .theme-noir .ph-polaroid { box-shadow: 0 0 0 1.5px #111; }
+.theme-noir .sheet-deco { background: linear-gradient(#111, #111) 56px 1012px / 120px 6px no-repeat; }
+
+.theme-retro {
+  --paper: #F6EAD6; --paper-pattern: none;
+  --ink: #2B2622; --ink-soft: #3A322C; --muted: #6E5E50;
+  --accent: #D25B26; --accent2: #2D7A75; --accent2-ink: #1F5A56;
+  --rule: #2B2622; --foot-rule: #DCC7A6;
+  --chip-bg: #F6D0A8; --chip-ink: #7A3410; --chip2-bg: #CDE4E1; --chip2-ink: #1F5450;
+  --chip3-bg: #2B2622; --chip3-ink: #F6EAD6; --chip3-line: #2B2622;
+  --tape: rgba(224, 168, 58, .7); --note-bg: #F8DDA8;
+  --font-title: 'Space Grotesk', system-ui, sans-serif; --title-weight: 700; --title-size: 54px;
+  --photo-radius: 18px;
+}
+.theme-retro .sheet-deco {
+  background:
+    linear-gradient(#D25B26, #D25B26) 0 0 / 100% 14px no-repeat,
+    linear-gradient(#E0A83A, #E0A83A) 0 14px / 100% 14px no-repeat,
+    linear-gradient(#2D7A75, #2D7A75) 0 28px / 100% 14px no-repeat,
+    radial-gradient(circle at 100% 100%, rgba(210, 91, 38, .14) 0 180px, transparent 181px);
+}
+.theme-retro .sh-run { top: 56px; }
+.theme-retro .sh-rule { top: 78px; }
+.theme-retro .sh-month-name { font-family: 'Space Grotesk', sans-serif; font-style: normal; font-weight: 700; }
+
+.theme-lavender {
+  --paper: #F7F4FC;
+  --paper-pattern: repeating-linear-gradient(transparent 0 31px, rgba(118, 85, 188, .13) 31px 32px);
+  --paper-pattern-size: 100% 32px;
+  --ink: #2F2545; --ink-soft: #3A2F52; --muted: #6A5D86;
+  --accent: #7655BC; --accent2: #D98DB7; --accent2-ink: #A2467A;
+  --rule: #7655BC; --foot-rule: #DCD3EE;
+  --chip-bg: #E8E0F7; --chip-ink: #4F3591; --chip2-bg: #F7DCEB; --chip2-ink: #87305F;
+  --chip3-bg: #FFFFFF; --chip3-ink: #2F2545; --chip3-line: #DCD3EE;
+  --tape: rgba(190, 175, 240, .7); --note-bg: #ECE5FA;
+  --font-title: 'Caveat', cursive; --title-weight: 700; --title-size: 66px;
+  --photo-radius: 10px;
+}
+.theme-lavender .sh-title { line-height: .95; letter-spacing: 0; }
+.theme-lavender .sheet-deco { background: linear-gradient(90deg, transparent 44px, rgba(217, 141, 183, .5) 44px 45.5px, transparent 45.5px); }
+
+.theme-ocean {
+  --paper: #0F2433; --paper-pattern: radial-gradient(rgba(234, 244, 247, .07) 1px, transparent 1.2px);
+  --ink: #EAF4F7; --ink-soft: #DCEBF0; --muted: #9DB7C2;
+  --accent: #5FC3D6; --accent2: #F2C14E; --accent2-ink: #F5CF6E;
+  --rule: #EAF4F7; --foot-rule: #2A4556;
+  --chip-bg: #183A4F; --chip-ink: #9FE3EF; --chip2-bg: #3A3A24; --chip2-ink: #F6D98A;
+  --chip3-bg: transparent; --chip3-ink: #EAF4F7; --chip3-line: #3B5B6E;
+  --tape: rgba(95, 195, 214, .4); --note-bg: #D6EEF3;
+  --title-style: italic; --title-weight: 400;
+  --photo-border: #EAF4F7; --photo-shadow: 0 18px 30px -12px rgba(0, 0, 0, .7); --shadow-soft: 0 10px 20px -8px rgba(0, 0, 0, .6);
+}
+.theme-ocean .sh-day { color: var(--accent); }
+.theme-ocean .sheet-deco {
+  background:
+    radial-gradient(circle at 66% 10%, rgba(242, 193, 78, .9) 0 34px, rgba(242, 193, 78, .18) 35px 70px, transparent 71px),
+    linear-gradient(180deg, transparent 70%, rgba(95, 195, 214, .10));
+}
+
+.theme-vintage {
+  --paper: #EFE3CB; --paper-pattern: radial-gradient(rgba(90, 60, 30, .07) 1px, transparent 1.6px);
+  --paper-pattern-size: 9px 9px;
+  --ink: #3B2E22; --ink-soft: #46372A; --muted: #75614C;
+  --accent: #8C3B2A; --accent2: #4F6B5A; --accent2-ink: #3E5747;
+  --rule: #3B2E22; --foot-rule: #CDB894;
+  --chip-bg: #E6D0AE; --chip-ink: #6A2C1E; --chip2-bg: #D5DECF; --chip2-ink: #2F4A3A;
+  --chip3-bg: #F6EEDD; --chip3-ink: #3B2E22; --chip3-line: #CDB894;
+  --tape: rgba(240, 228, 200, .75); --note-bg: #F6EDD6;
+  --font-title: 'Playfair Display', Georgia, serif; --title-weight: 600;
+  --photo-border: #FBF6EA; --photo-shadow: 0 14px 22px -12px rgba(70, 45, 20, .55);
+}
+.theme-vintage .sheet-deco {
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(110, 75, 35, .22) 100%);
+  box-shadow: inset 0 0 0 18px transparent, inset 0 0 0 19.5px rgba(59, 46, 34, .35);
+}
+.theme-vintage .ph-frame img { filter: sepia(.18) contrast(.98); }
+
+.theme-citrus {
+  --paper: #FFFBEA; --paper-pattern: none;
+  --ink: #2A2A1E; --ink-soft: #33331F; --muted: #67664A;
+  --accent: #E2721A; --accent2: #3C9A49; --accent2-ink: #2C7637;
+  --rule: #2A2A1E; --foot-rule: #F0E3A8;
+  --chip-bg: #FDE2C2; --chip-ink: #8A3F08; --chip2-bg: #D7EFD9; --chip2-ink: #22612C;
+  --chip3-bg: #FFF3A6; --chip3-ink: #2A2A1E; --chip3-line: #E9D66A;
+  --tape: rgba(251, 241, 160, .85); --note-bg: #FFF2A8;
+  --font-title: 'Patrick Hand', 'Caveat', cursive; --title-weight: 400; --title-size: 58px;
+  --photo-radius: 16px;
+}
+.theme-citrus .sheet-deco {
+  background:
+    radial-gradient(circle at 95% 4%, #FFE45C 0 92px, rgba(255, 228, 92, .35) 93px 120px, transparent 121px),
+    radial-gradient(circle at 2% 100%, rgba(60, 154, 73, .16) 0 140px, transparent 141px);
+}
+.theme-citrus .sh-month-name { font-family: 'Patrick Hand', cursive; font-style: normal; font-size: 36px; }
+
+@media print {
+  .theme-ocean { --paper: #F4FAFC; --paper-pattern: radial-gradient(#D2E4EA 1px, transparent 1.2px); --ink: #0F2433; --ink-soft: #17303F; --muted: #4F6A78;
+    --accent: #1F7F93; --accent2-ink: #9A7212; --rule: #0F2433; --foot-rule: #C9DCE3; --chip-bg: #DDF0F4; --chip-ink: #13505C;
+    --chip2-bg: #F7EBC8; --chip2-ink: #6E4F07; --chip3-bg: #fff; --chip3-ink: #0F2433; --chip3-line: #C9DCE3; --photo-border: #FFFFFF; }
+  .theme-ocean .sheet-deco { background: radial-gradient(circle at 66% 10%, rgba(242, 193, 78, .7) 0 34px, transparent 35px); }
+}

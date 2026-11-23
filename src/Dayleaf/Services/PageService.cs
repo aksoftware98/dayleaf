@@ -512,15 +512,15 @@ public sealed class PageService(
             case TextData t:
                 t.Html = Cap(TextSanitizer.Sanitize(t.Html), 20000);
                 t.Size = OneOf(t.Size, "m", "s", "m", "l", "xl");
-                t.Font = OneOf(t.Font, "body", "body", "display", "hand", "mono");
-                t.Color = OneOf(t.Color, "ink", "ink", "accent", "accent2", "muted");
+                t.Font = OneOf(t.Font, "body", Palette.TextFontIds);
+                t.Color = OneOf(t.Color, "ink", Palette.Inks);
                 t.Align = OneOf(t.Align, "left", "left", "center", "right");
                 t.Highlight = t.Highlight is "marker" or "box" ? t.Highlight : null;
                 break;
             case HeadingData h:
                 h.Text = Cap(h.Text, 300);
                 h.Size = OneOf(h.Size, "l", "m", "l", "xl");
-                h.Color = OneOf(h.Color, "ink", "ink", "accent", "accent2", "muted");
+                h.Color = OneOf(h.Color, "ink", Palette.Inks);
                 h.Align = OneOf(h.Align, "left", "left", "center", "right");
                 break;
             case PhotoData p:
@@ -530,7 +530,7 @@ public sealed class PageService(
                 p.FocusX = Math.Clamp(p.FocusX, 0, 100);
                 p.FocusY = Math.Clamp(p.FocusY, 0, 100);
                 p.Zoom = Math.Clamp(p.Zoom, 1, 4);
-                p.Filter = OneOf(p.Filter, "none", "none", "warm", "cool", "mono", "fade", "vivid");
+                p.Filter = OneOf(p.Filter, "none", Palette.PhotoFilters);
                 break;
             case EmojiData e:
                 e.Char = string.IsNullOrWhiteSpace(e.Char) ? "🌱" : Cap(e.Char.Trim(), 16);
@@ -538,12 +538,12 @@ public sealed class PageService(
             case NoteData n:
                 n.Html = Cap(TextSanitizer.Sanitize(n.Html), 10000);
                 n.Title = string.IsNullOrWhiteSpace(n.Title) ? null : Cap(n.Title.Trim(), 120);
-                n.Color = OneOf(n.Color, "yellow", "yellow", "pink", "mint", "sky", "lilac");
+                n.Color = OneOf(n.Color, "yellow", Palette.NoteColors);
                 break;
             case ChecklistData c:
                 c.Title = string.IsNullOrWhiteSpace(c.Title) ? null : Cap(c.Title.Trim(), 120);
                 c.Items = (c.Items ?? []).Take(40).Select(i => new ChecklistItem { Text = Cap(i.Text?.Trim(), 200), Done = i.Done }).ToList();
-                c.Color = OneOf(c.Color, "yellow", "yellow", "pink", "mint", "sky", "lilac", "paper");
+                c.Color = OneOf(c.Color, "yellow", Palette.ChecklistColors);
                 break;
             case PageLinkData l:
                 l.Note = string.IsNullOrWhiteSpace(l.Note) ? null : Cap(l.Note.Trim(), 200);
@@ -554,19 +554,19 @@ public sealed class PageService(
                 break;
             case LabelData lb:
                 lb.Text = Cap(lb.Text?.Trim(), 200);
-                lb.Color = OneOf(lb.Color, "accent", "ink", "accent", "accent2", "muted");
+                lb.Color = OneOf(lb.Color, "accent", Palette.Inks);
                 lb.Size = OneOf(lb.Size, "m", "s", "m", "l");
                 break;
             case DividerData d:
-                d.Style = OneOf(d.Style, "line", "line", "dots", "wave", "stars");
+                d.Style = OneOf(d.Style, "line", Palette.DividerStyles);
                 break;
             case TapeData tp:
-                tp.Color = OneOf(tp.Color, "theme", "theme", "yellow", "pink", "mint", "sky", "lilac");
-                tp.Pattern = OneOf(tp.Pattern, "plain", "plain", "stripes", "dots", "grid");
+                tp.Color = OneOf(tp.Color, "theme", Palette.TapeColors);
+                tp.Pattern = OneOf(tp.Pattern, "plain", Palette.TapePatterns);
                 break;
             case ShapeData sh:
-                sh.Shape = OneOf(sh.Shape, "blob", "circle", "rect", "blob", "arch", "star");
-                sh.Color = OneOf(sh.Color, "accent2", "accent", "accent2", "chip", "note", "ink");
+                sh.Shape = OneOf(sh.Shape, "blob", Palette.Shapes);
+                sh.Color = OneOf(sh.Color, "accent2", Palette.ShapeColors);
                 sh.Opacity = Math.Clamp(sh.Opacity, 0.05, 1);
                 break;
         }

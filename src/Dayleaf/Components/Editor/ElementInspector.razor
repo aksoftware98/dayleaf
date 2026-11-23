@@ -41,7 +41,7 @@
                     <div class="seg">@foreach (var (v, l) in new[] { ("s", "S"), ("m", "M"), ("l", "L"), ("xl", "XL") }) { <button type="button" aria-pressed="@(P(t.Size == v))" @onclick="() => Set(t, x => x.Size = v)">@l</button> }</div>
                 </div>
                 <div class="field">Font
-                    <div class="seg">@foreach (var (v, l) in new[] { ("body", "Body"), ("display", "Display"), ("hand", "Hand"), ("mono", "Mono") }) { <button type="button" aria-pressed="@(P(t.Font == v))" @onclick="() => Set(t, x => x.Font = v)">@l</button> }</div>
+                    <div class="seg">@foreach (var (v, l) in Palette.TextFonts) { <button type="button" aria-pressed="@(P(t.Font == v))" @onclick="() => Set(t, x => x.Font = v)">@l</button> }</div>
                 </div>
                 <div class="field">Ink
                     <InkSwatches Value="@t.Color" Theme="Theme" ValueChanged="v => Set(t, x => x.Color = v)" />
@@ -76,7 +76,7 @@
                     <div class="seg">@foreach (var (v, l) in PhotoStyles) { <button type="button" aria-pressed="@(P(p.Style == v))" @onclick="() => SetPhotoStyle(p, v)">@l</button> }</div>
                 </div>
                 <div class="field">Filter
-                    <div class="seg">@foreach (var v in new[] { "none", "warm", "cool", "mono", "fade", "vivid" }) { <button type="button" aria-pressed="@(P(p.Filter == v))" @onclick="() => Set(p, x => x.Filter = v)">@(v == "none" ? "Off" : v[..1].ToUpperInvariant() + v[1..])</button> }</div>
+                    <div class="seg">@foreach (var v in Palette.PhotoFilters) { <button type="button" aria-pressed="@(P(p.Filter == v))" @onclick="() => Set(p, x => x.Filter = v)">@(v == "none" ? "Off" : v[..1].ToUpperInvariant() + v[1..])</button> }</div>
                 </div>
                 <label class="field">
                     <span class="slider-label">Crop zoom<span>@p.Zoom.ToString("0.0", CultureInfo.InvariantCulture)×</span></span>
@@ -159,25 +159,25 @@
 
             case DividerData d:
                 <div class="field">Style
-                    <div class="seg">@foreach (var v in new[] { "line", "dots", "wave", "stars" }) { <button type="button" aria-pressed="@(P(d.Style == v))" @onclick="() => Set(d, x => x.Style = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                    <div class="seg">@foreach (var v in Palette.DividerStyles) { <button type="button" aria-pressed="@(P(d.Style == v))" @onclick="() => Set(d, x => x.Style = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
                 </div>
                 break;
 
             case TapeData tp:
                 <div class="field">Color
-                    <div class="seg">@foreach (var v in new[] { "theme", "yellow", "pink", "mint", "sky", "lilac" }) { <button type="button" aria-pressed="@(P(tp.Color == v))" @onclick="() => Set(tp, x => x.Color = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                    <ColorSwatches Items="Palette.Tapes" Value="@tp.Color" ValueChanged="v => Set(tp, x => x.Color = v)" Label="Tape color" />
                 </div>
                 <div class="field">Pattern
-                    <div class="seg">@foreach (var v in new[] { "plain", "stripes", "dots", "grid" }) { <button type="button" aria-pressed="@(P(tp.Pattern == v))" @onclick="() => Set(tp, x => x.Pattern = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                    <div class="seg">@foreach (var v in Palette.TapePatterns) { <button type="button" aria-pressed="@(P(tp.Pattern == v))" @onclick="() => Set(tp, x => x.Pattern = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
                 </div>
                 break;
 
             case ShapeData sh:
                 <div class="field">Shape
-                    <div class="seg">@foreach (var v in new[] { "blob", "circle", "rect", "arch", "star" }) { <button type="button" aria-pressed="@(P(sh.Shape == v))" @onclick="() => Set(sh, x => x.Shape = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                    <div class="seg">@foreach (var v in Palette.Shapes) { <button type="button" aria-pressed="@(P(sh.Shape == v))" @onclick="() => Set(sh, x => x.Shape = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
                 </div>
                 <div class="field">Color
-                    <div class="seg">@foreach (var (v, l) in new[] { ("accent", "Accent"), ("accent2", "Accent 2"), ("chip", "Soft"), ("note", "Note"), ("ink", "Ink") }) { <button type="button" aria-pressed="@(P(sh.Color == v))" @onclick="() => Set(sh, x => x.Color = v)">@l</button> }</div>
+                    <InkSwatches Value="@sh.Color" Theme="Theme" ForShapes="true" ValueChanged="v => Set(sh, x => x.Color = v)" />
                 </div>
                 <label class="field">
                     <span class="slider-label">Opacity<span>@((int)(sh.Opacity * 100))%</span></span>

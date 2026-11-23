@@ -1,0 +1,18 @@
+@* Generic round swatch picker for a Palette list. *@
+<div class="swatches swatches-sm" role="group" aria-label="@Label">
+    @foreach (var s in Items)
+    {
+        if (Exclude?.Contains(s.Id) == true) continue;
+        <button type="button" class="swatch" style="background:@(Background?.Invoke(s) ?? s.Hex)" aria-label="@s.Name" title="@s.Name"
+                aria-pressed="@(Value == s.Id ? "true" : "false")" @onclick="() => ValueChanged.InvokeAsync(s.Id)"></button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Palette.Swatch> Items { get; set; } = [];
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Label { get; set; } = "Color";
+    [Parameter] public Func<Palette.Swatch, string>? Background { get; set; }
+    [Parameter] public IReadOnlyCollection<string>? Exclude { get; set; }
+}
