@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="@Lang.Current" dir="@Lang.Dir(Lang.Current)">
+<html lang="@Lang.Current" dir="@Lang.Dir(Lang.Current)" data-look="@Look">
 
 <head>
     <meta charset="utf-8" />
@@ -29,6 +29,9 @@
 
 @code {
     [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    /// <summary>App appearance from the "dayleaf.look" cookie (set by /look/{name}); read on the server so there's no flash.</summary>
+    private string Look => Appearance.Normalize(HttpContext.Request.Cookies[Appearance.CookieName]);
 
     // Print and share pages opt out with [ExcludeFromInteractiveRouting] and render as static SSR.
     private IComponentRenderMode? PageRenderMode =>

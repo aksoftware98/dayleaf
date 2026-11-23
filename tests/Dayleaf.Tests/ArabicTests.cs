@@ -43,6 +43,8 @@ public class ArabicTranslationTests
         foreach (var v in Palette.DividerStyles.Concat(Palette.TapePatterns).Concat(Palette.Shapes)) keys.Add(Palette.Title(v));
         foreach (var k in Enum.GetValues<ElementKind>()) keys.Add(ElementInspector.NameFor(k));
         foreach (var c in EmojiCatalog.Categories) keys.Add(c.Name);
+        foreach (var g in Themes.Groups) keys.Add(g.Name);
+        foreach (var (_, name) in Appearance.All) keys.Add(name);
         foreach (var l in new[] { "Plain", "Die-cut", "Polaroid", "Taped", "Round", "Start", "Center", "End" }) keys.Add(l);
         foreach (var l in new[] { "Morning", "Afternoon", "Evening", "Night" }) keys.Add(l);
         foreach (var l in new[] { "☀️ Sunny", "🌧️ Rainy", "😊 Good day", "😴 Tired", "🎉 Milestone", "💡 Idea", "📍 Home", "✈️ Travel", "🌱 Fresh start", "🍂 Autumn", "❄️ Winter", "🌸 Spring" }) keys.Add(l);

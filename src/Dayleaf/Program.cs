@@ -141,6 +141,13 @@ app.MapGet("/logout", async ctx =>
     await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     ctx.Response.Redirect("/login");
 }).AllowAnonymous();
+app.MapGet("/look/{name}", (string name, string? r, HttpContext ctx) =>
+{
+    ctx.Response.Cookies.Append(Appearance.CookieName, Appearance.Normalize(name),
+        new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, SameSite = SameSiteMode.Lax, HttpOnly = true });
+    var back = !string.IsNullOrEmpty(r) && r.StartsWith('/') && !r.StartsWith("//") && !r.StartsWith("/\\") ? r : "/";
+    return Results.LocalRedirect(back);
+}).AllowAnonymous();
 app.MapGet("/lang/{code}", (string code, string? r, HttpContext ctx) =>
 {
     var lang = Lang.Normalize(code);

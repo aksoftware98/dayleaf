@@ -1,12 +1,21 @@
-<div class="themes" role="group" aria-label="@L["Page theme"]">
-    @foreach (var t in Themes.All)
+@* Theme gallery, grouped. Each card previews the theme's real background, title font and accents. *@
+<div class="theme-groups" role="group" aria-label="@L["Page theme"]">
+    @foreach (var g in Themes.Groups)
     {
-        <button type="button" class="theme-card" aria-pressed="@(Value == t.Id ? "true" : "false")" title="@L[t.Blurb]" disabled="@Disabled"
-                style="background:@t.Paper" @onclick="() => ValueChanged.InvokeAsync(t.Id)">
-            <span class="aa" style="font-family:@t.TitleFont;color:@t.Ink;@AaStyle(t)">Aa</span>
-            <span class="dots"><i style="background:@t.Accent"></i><i style="background:@t.Accent2"></i></span>
-            <span class="nm" style="color:@t.Ink">@L[t.Name]</span>
-        </button>
+        <div class="theme-group">
+            <span class="theme-group-name">@L[g.Name]</span>
+            <div class="themes">
+                @foreach (var t in Themes.All.Where(x => x.Group == g.Id))
+                {
+                    <button type="button" class="theme-card tc-@t.Id" aria-pressed="@(Value == t.Id ? "true" : "false")" title="@L[t.Blurb]" disabled="@Disabled"
+                            style="background:@t.PreviewBackground" @onclick="() => ValueChanged.InvokeAsync(t.Id)">
+                        <span class="aa" style="font-family:@t.TitleFont;color:@t.Ink;@AaStyle(t)">Aa</span>
+                        <span class="dots"><i style="background:@t.Accent"></i><i style="background:@t.Accent2"></i></span>
+                        <span class="nm" style="color:@t.Ink">@L[t.Name]</span>
+                    </button>
+                }
+            </div>
+        </div>
     }
     @if (ShowShuffle)
     {
@@ -24,6 +33,7 @@
     {
         "italic" => "font-style:italic",
         "bold" => "font-weight:700",
+        "light" => "font-weight:300",
         "hand" => "font-weight:700;font-size:24px",
         _ => "",
     };

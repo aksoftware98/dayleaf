@@ -1,0 +1,26 @@
+@inject NavigationManager Nav
+
+@* Plain links: /look/{name} sets the cookie and reloads, so the server renders the right look with no flash. *@
+<div class="look-switch" role="group" aria-label="@L["Appearance"]">
+    @foreach (var (id, name) in Appearance.All)
+    {
+        <a href="@Href(id)" target="_top" aria-current="@(Current == id ? "true" : null)" title="@L[name]">
+            <i class="look-@id" aria-hidden="true"></i>@L[name]
+        </a>
+    }
+</div>
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // Interactive circuits have no HttpContext: the prerender pass reads the cookie and [PersistentState] carries it over.
+    [PersistentState] public string? Current { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (HttpContext is not null) Current = Appearance.Normalize(HttpContext.Request.Cookies[Appearance.CookieName]);
+        Current ??= "paper";
+    }
+
+    private string Href(string id) => $"/look/{id}?r={Uri.EscapeDataString("/" + Nav.ToBaseRelativePath(Nav.Uri))}";
+}

@@ -1,8 +1,12 @@
 # 🍃 Dayleaf
 
-A notebook for everything in your life. Organize it into **spaces**; each space holds one **page per date**. Every page is a printable A4 sheet you design freely — photo stickers, notes, checklists, washi tape, handwriting, page links — in fifteen paper themes (Field, Pastel, Sea, Sunset, Night, Kraft, Graph, Blossom, Matcha, Noir, Retro, Lavender, Ocean, Vintage, Citrus), with 16 space colours, 12 extra inks, 13 note papers, 12 washi tapes and 7 tape patterns.
+A notebook for everything in your life. Organize it into **spaces**; each space holds one **page per date**. Every page is a printable A4 sheet you design freely — photo stickers, notes, checklists, washi tape, handwriting, page links — in 26 page themes: **Modern** (Metro/Windows 8, Fluent/Windows 11, Liquid Glass, Glass Night, Pop, Aurora), **Cities** (New York, Tokyo, Paris, Miami, Dubai) and **Classic** (Field, Pastel, Sea, Sunset, Night, Kraft, Graph, Blossom, Matcha, Noir, Retro, Lavender, Ocean, Vintage, Citrus), with 16 space colours, 12 extra inks, 13 note papers, 12 washi tapes and 7 tape patterns.
 
 Built with .NET 10 Blazor (Interactive Server), EF Core + SQLite, and a small vanilla-JS canvas engine. See [DAYLEAF_PLAN.md](DAYLEAF_PLAN.md) for the full spec.
+
+## Appearance
+
+The app itself has four looks, switched at the bottom of the sidebar: **Paper** (the original cream notebook), **Light** (clean Windows-style), **Dark** and **Glass** (frosted panels on a colourful gradient).
 
 ## العربية · Arabic
 

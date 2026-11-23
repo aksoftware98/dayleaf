@@ -27,7 +27,8 @@ public class ThemeAndPaletteTests
     {
         Assert.Equal(Themes.All.Count, Themes.All.Select(t => t.Id).Distinct().Count());
         Assert.Equal(SpaceColors.All.Count, SpaceColors.All.Select(c => c.Id).Distinct().Count());
-        Assert.True(Themes.All.Count >= 15);
+        Assert.True(Themes.All.Count >= 26);
+        Assert.All(Themes.All, t => Assert.Contains(Themes.Groups, g => g.Id == t.Group));
         Assert.True(SpaceColors.All.Count >= 16);
     }
 

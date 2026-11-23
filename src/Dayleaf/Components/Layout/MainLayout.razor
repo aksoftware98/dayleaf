@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @implements IDisposable
 @inject ISpaceService SpaceService
 @inject AppEvents Events
@@ -36,6 +36,7 @@
         <div class="sidebar-foot">
             @L["a page a day keeps the years ✦"]
             <LanguageSwitch />
+            <AppearanceSwitch />
             @if (Gate.Enabled)
             {
                 <a href="/logout" target="_top" class="btn btn-ghost btn-sm" style="margin-top:6px;font-family:var(--font-ui)"><Icon Name="lock" Size="14" />@L["Lock notebook"]</a>

@@ -640,3 +640,366 @@
 .sheet[dir="rtl"] .sh-yw { font-size: 14px; }
 /* Arabic needs a little more line height than Latin text. */
 .sheet :lang(ar) .el-text, .sheet:lang(ar) .el-text, .sheet:lang(ar) .note-body { line-height: 1.8; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Themes, part 3 — Modern & Cities
+   Note/checklist colours expose --nc (the paper colour) and --tile (a bold tile colour)
+   so glass and tile themes can restyle notes while keeping the colour you picked.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.note-yellow, .cl-yellow { --nc: #F6E7B8; --tile: #E3A21A; }
+.note-lemon, .cl-lemon { --nc: #FBF1A0; --tile: #D8C100; }
+.note-peach, .cl-peach { --nc: #FBDCC4; --tile: #FA6800; }
+.note-coral, .cl-coral { --nc: #F7C6BC; --tile: #E51400; }
+.note-pink, .cl-pink { --nc: #F9D7DF; --tile: #D80073; }
+.note-lilac, .cl-lilac { --nc: #E6E0FA; --tile: #6A00FF; }
+.note-sky, .cl-sky { --nc: #D6E8F5; --tile: #1BA1E2; }
+.note-mint, .cl-mint { --nc: #D5EBDC; --tile: #60A917; }
+.note-sage, .cl-sage { --nc: #DDE5CF; --tile: #6D8764; }
+.note-kraft, .cl-kraft { --nc: #D9BF97; --tile: #825A2C; }
+.note-cloud, .cl-cloud { --nc: #E6E8EB; --tile: #647687; }
+.note-white, .cl-white { --nc: #FFFFFF; --tile: #FFFFFF; }
+.note-ink, .cl-ink { --nc: #2B2F33; --tile: #1D1D1D; }
+
+/* gradient papers: one full-size layer set, no dot offset */
+.theme-fluent, .theme-glass, .theme-glassnight, .theme-miami, .theme-aurora { background-position: 0 0; }
+
+/* ── Metro (Windows 8) ─────────────────────────────────────────────────── */
+.theme-metro {
+  --paper: #FFFFFF; --paper-pattern: none;
+  --ink: #1D1D1D; --ink-soft: #2B2B2B; --muted: #5E5E5E;
+  --accent: #0050EF; --accent2: #D80073; --accent2-ink: #B0005E;
+  --rule: transparent; --foot-rule: #E5E5E5;
+  --chip-bg: #D80073; --chip-ink: #FFFFFF; --chip2-bg: #60A917; --chip2-ink: #FFFFFF; --chip3-bg: #FA6800; --chip3-ink: #FFFFFF; --chip3-line: #FA6800;
+  --tape: rgba(0, 80, 239, .35); --note-bg: #0050EF;
+  --font-title: 'Segoe UI Variable Display', 'Segoe UI', 'Outfit', sans-serif;
+  --font-body: 'Segoe UI Variable Text', 'Segoe UI', 'Inter', system-ui, sans-serif;
+  --font-day: var(--font-title);
+  --title-weight: 300; --title-size: 52px;
+  --photo-radius: 0px; --photo-border: #FFFFFF; --photo-shadow: none; --shadow-soft: none;
+}
+.theme-metro .sheet-deco {
+  background:
+    linear-gradient(90deg, #D80073 0 25%, #60A917 25% 50%, #FA6800 50% 75%, #00ABA9 75%) 0 232px / 100% 10px no-repeat,
+    linear-gradient(#0050EF, #0050EF) 0 0 / 100% 232px no-repeat;
+}
+.theme-metro .sh-run, .theme-metro .sh-brand, .theme-metro .sh-day, .theme-metro .sh-month-name, .theme-metro .sh-yw { color: #FFFFFF; }
+.theme-metro .sh-day { font-weight: 200; letter-spacing: -.06em; }
+.theme-metro .sh-month-name { font-style: normal; font-weight: 300; font-size: 38px; }
+.theme-metro .sh-brand { font-style: normal; font-family: var(--font-title); font-weight: 600; }
+.theme-metro .sh-chip { border-radius: 0; padding: 8px 14px; font-weight: 600; }
+.theme-metro .sh-title { top: 264px; letter-spacing: -.01em; }
+.theme-metro .note, .theme-metro .checklist:not(.cl-paper) { background: var(--tile, #0050EF); color: #FFFFFF; border-radius: 0; box-shadow: none; }
+.theme-metro .note::before { display: none; }
+.theme-metro .note .note-title, .theme-metro .checklist:not(.cl-paper) .cl-title { color: #FFFFFF; font-family: var(--font-title); font-weight: 300; font-size: 26px; }
+.theme-metro .note-white, .theme-metro .cl-white, .theme-metro .note-white .note-title, .theme-metro .cl-white .cl-title { color: #1D1D1D; }
+.theme-metro .note-white, .theme-metro .cl-white { box-shadow: inset 0 0 0 2px #1D1D1D; }
+.theme-metro .checklist:not(.cl-paper) li.done .cl-box { background: #FFFFFF; border-color: #FFFFFF; color: var(--tile, #0050EF); }
+.theme-metro .ph-sticker, .theme-metro .ph-taped { border-width: 0; }
+.theme-metro .plink { border-radius: 0; border: 0; background: #F2F2F2; }
+.theme-metro .q-text { font-style: normal; font-weight: 300; }
+
+/* ── Fluent (Windows 10/11) ────────────────────────────────────────────── */
+.theme-fluent {
+  --paper: #F3F6FB;
+  --paper-pattern:
+    radial-gradient(110% 70% at 105% -5%, rgba(0, 103, 192, .55) 0, rgba(90, 160, 255, .35) 35%, transparent 65%),
+    radial-gradient(70% 45% at 85% 10%, rgba(135, 100, 184, .35) 0, transparent 70%),
+    radial-gradient(80% 50% at -10% 105%, rgba(194, 168, 255, .45) 0, transparent 70%);
+  --paper-pattern-size: 100% 100%;
+  --ink: #1B1B1F; --ink-soft: #24242A; --muted: #5C5F66;
+  --accent: #0067C0; --accent2: #8764B8; --accent2-ink: #6B4C9A;
+  --rule: rgba(0, 0, 0, .1); --foot-rule: rgba(0, 0, 0, .1);
+  --chip-bg: rgba(255, 255, 255, .75); --chip-ink: #003E73; --chip2-bg: #0067C0; --chip2-ink: #FFFFFF; --chip3-bg: rgba(255, 255, 255, .55); --chip3-ink: #1B1B1F; --chip3-line: rgba(0, 0, 0, .08);
+  --tape: rgba(0, 103, 192, .3); --note-bg: rgba(255, 255, 255, .72);
+  --font-title: 'Segoe UI Variable Display', 'Segoe UI', 'Outfit', sans-serif;
+  --font-body: 'Segoe UI Variable Text', 'Segoe UI', 'Inter', system-ui, sans-serif;
+  --font-day: var(--font-title);
+  --title-weight: 600; --title-size: 50px;
+  --photo-radius: 8px; --photo-border: rgba(255, 255, 255, .9);
+  --photo-shadow: 0 8px 16px rgba(0, 0, 0, .14), 0 0 2px rgba(0, 0, 0, .12);
+  --shadow-soft: 0 8px 16px rgba(0, 0, 0, .12), 0 0 2px rgba(0, 0, 0, .1);
+}
+.theme-fluent .sh-day { font-weight: 600; letter-spacing: -.05em; }
+.theme-fluent .sh-month-name { font-style: normal; font-weight: 600; }
+.theme-fluent .sh-brand { font-style: normal; font-family: var(--font-title); font-weight: 600; }
+.theme-fluent .sh-chip { border-radius: 6px; border: 1px solid rgba(0, 0, 0, .06); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.theme-fluent .note, .theme-fluent .checklist:not(.cl-paper), .theme-fluent .plink {
+  background: color-mix(in srgb, var(--nc, #FFFFFF) 35%, rgba(255, 255, 255, .62));
+  -webkit-backdrop-filter: blur(30px) saturate(1.4); backdrop-filter: blur(30px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, .7); border-radius: 8px;
+}
+.theme-fluent .note::before { display: none; }
+.theme-fluent .note-title, .theme-fluent .cl-title { font-family: var(--font-title); font-weight: 600; font-size: 20px; }
+
+/* ── Liquid Glass (light & night) ──────────────────────────────────────── */
+.theme-glass {
+  --paper: #EDE7FF;
+  --paper-pattern:
+    radial-gradient(45% 35% at 12% 12%, #FF9ACB 0, transparent 100%),
+    radial-gradient(45% 35% at 92% 18%, #8EC5FF 0, transparent 100%),
+    radial-gradient(55% 40% at 70% 92%, #B79CFF 0, transparent 100%),
+    radial-gradient(45% 35% at 5% 95%, #7FF0D2 0, transparent 100%),
+    radial-gradient(40% 30% at 40% 55%, #FFD6A8 0, transparent 100%);
+  --paper-pattern-size: 100% 100%;
+  --ink: #1A1530; --ink-soft: #221C3D; --muted: #4F4775;
+  --accent: #6B3DF5; --accent2: #FF4FA3; --accent2-ink: #C2187A;
+  --rule: transparent; --foot-rule: rgba(255, 255, 255, .7);
+  --chip-bg: rgba(255, 255, 255, .45); --chip-ink: #2A1F5C; --chip2-bg: rgba(255, 255, 255, .45); --chip2-ink: #7A1650; --chip3-bg: rgba(255, 255, 255, .3); --chip3-ink: #1A1530; --chip3-line: rgba(255, 255, 255, .8);
+  --tape: rgba(255, 255, 255, .55); --note-bg: rgba(255, 255, 255, .4);
+  --font-title: -apple-system, 'SF Pro Display', 'Outfit', sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  --font-day: var(--font-title);
+  --title-weight: 700; --title-size: 54px;
+  --photo-radius: 28px; --photo-border: rgba(255, 255, 255, .5);
+  --photo-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 20px 40px -18px rgba(40, 20, 110, .5);
+  --shadow-soft: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(255, 255, 255, .25), 0 18px 40px -18px rgba(40, 20, 110, .45);
+  --glass-bg: rgba(255, 255, 255, .28); --glass-line: rgba(255, 255, 255, .7); --glass-tint: 38%;
+}
+.theme-glassnight {
+  --paper: #0B0B1E;
+  --paper-pattern:
+    radial-gradient(45% 35% at 18% 15%, rgba(91, 46, 255, .9) 0, transparent 100%),
+    radial-gradient(40% 30% at 88% 28%, rgba(255, 46, 147, .75) 0, transparent 100%),
+    radial-gradient(55% 40% at 60% 95%, rgba(0, 209, 255, .7) 0, transparent 100%),
+    radial-gradient(40% 30% at 10% 80%, rgba(46, 255, 170, .35) 0, transparent 100%);
+  --paper-pattern-size: 100% 100%;
+  --ink: #F4F2FF; --ink-soft: #ECE9FF; --muted: #B8B2E0;
+  --accent: #B59CFF; --accent2: #2EE6FF; --accent2-ink: #7FF1FF;
+  --rule: transparent; --foot-rule: rgba(255, 255, 255, .22);
+  --chip-bg: rgba(255, 255, 255, .12); --chip-ink: #F4F2FF; --chip2-bg: rgba(46, 230, 255, .16); --chip2-ink: #BFF8FF; --chip3-bg: rgba(255, 255, 255, .06); --chip3-ink: #F4F2FF; --chip3-line: rgba(255, 255, 255, .28);
+  --tape: rgba(255, 255, 255, .25); --note-bg: rgba(255, 255, 255, .1);
+  --font-title: -apple-system, 'SF Pro Display', 'Outfit', sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+  --font-day: var(--font-title);
+  --title-weight: 700; --title-size: 54px;
+  --photo-radius: 28px; --photo-border: rgba(255, 255, 255, .16);
+  --photo-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 24px 44px -18px rgba(0, 0, 0, .7);
+  --shadow-soft: inset 0 1px 0 rgba(255, 255, 255, .35), 0 20px 44px -18px rgba(0, 0, 0, .7);
+  --glass-bg: rgba(255, 255, 255, .08); --glass-line: rgba(255, 255, 255, .22); --glass-tint: 16%;
+}
+/* the big glass card behind the header */
+.theme-glass .sheet-deco::after, .theme-glassnight .sheet-deco::after {
+  content: ''; position: absolute; left: 30px; right: 30px; top: 28px; height: 352px; border-radius: 38px;
+  background: var(--glass-bg); border: 1px solid var(--glass-line);
+  -webkit-backdrop-filter: blur(26px) saturate(1.8); backdrop-filter: blur(26px) saturate(1.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), inset 0 -18px 40px -30px rgba(255, 255, 255, .5), 0 30px 60px -30px rgba(30, 10, 90, .45);
+}
+.theme-glassnight .sheet-deco::after { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 30px 60px -30px rgba(0, 0, 0, .8); }
+.theme-glass .sh-run, .theme-glassnight .sh-run { left: 64px; right: 64px; }
+.theme-glass .sh-day, .theme-glassnight .sh-day { font-weight: 700; letter-spacing: -.06em; }
+.theme-glass .sh-month-name, .theme-glassnight .sh-month-name { font-style: normal; font-weight: 600; }
+.theme-glass .sh-brand, .theme-glassnight .sh-brand { font-style: normal; font-family: var(--font-title); font-weight: 700; }
+.theme-glass .sh-title, .theme-glassnight .sh-title { letter-spacing: -.035em; }
+.theme-glass .sh-chip, .theme-glassnight .sh-chip { border: 1px solid var(--glass-line); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6); }
+.theme-glass .note, .theme-glass .checklist:not(.cl-paper), .theme-glass .plink, .theme-glass .tx-hl-box,
+.theme-glassnight .note, .theme-glassnight .checklist:not(.cl-paper), .theme-glassnight .plink, .theme-glassnight .tx-hl-box {
+  background: color-mix(in srgb, var(--nc, #FFFFFF) var(--glass-tint), var(--glass-bg));
+  -webkit-backdrop-filter: blur(20px) saturate(1.7); backdrop-filter: blur(20px) saturate(1.7);
+  border: 1px solid var(--glass-line); border-radius: 24px; box-shadow: var(--shadow-soft);
+}
+.theme-glassnight .note, .theme-glassnight .checklist:not(.cl-paper), .theme-glassnight .note-title, .theme-glassnight .cl-title { color: var(--ink); }
+.theme-glass .note::before, .theme-glassnight .note::before { display: none; }
+.theme-glass .note-title, .theme-glass .cl-title, .theme-glassnight .note-title, .theme-glassnight .cl-title { font-family: var(--font-title); font-weight: 700; font-size: 20px; }
+.theme-glass .ph-sticker, .theme-glass .ph-taped, .theme-glass .ph-round, .theme-glass .ph-polaroid,
+.theme-glassnight .ph-sticker, .theme-glassnight .ph-taped, .theme-glassnight .ph-round, .theme-glassnight .ph-polaroid {
+  -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); border-width: 8px;
+}
+.theme-glass .ph-polaroid, .theme-glassnight .ph-polaroid { background: var(--photo-border); border-radius: 22px; }
+.theme-glass .ph-polaroid .ph-frame, .theme-glassnight .ph-polaroid .ph-frame { border-radius: 16px; }
+.theme-glassnight .ph-polaroid figcaption { color: var(--ink); }
+.theme-glass .q-text, .theme-glassnight .q-text { font-style: normal; font-family: var(--font-title); font-weight: 700; letter-spacing: -.02em; }
+
+/* ── Pop (Memphis / neo-brutal) ────────────────────────────────────────── */
+.theme-pop {
+  --paper: #FFFDF5; --paper-pattern: radial-gradient(rgba(17, 17, 17, .13) 1.1px, transparent 1.5px); --paper-pattern-size: 22px 22px;
+  --ink: #111111; --ink-soft: #1A1A1A; --muted: #4A4A4A;
+  --accent: #2D7DD2; --accent2: #FF4F79; --accent2-ink: #D62F59;
+  --rule: #111111; --foot-rule: #111111;
+  --chip-bg: #FFD23F; --chip-ink: #111111; --chip2-bg: #3BCEAC; --chip2-ink: #111111; --chip3-bg: #FF4F79; --chip3-ink: #FFFFFF; --chip3-line: #111111;
+  --tape: rgba(45, 125, 210, .55); --note-bg: #FFD23F;
+  --font-title: 'Outfit', sans-serif; --font-day: 'Outfit', sans-serif; --font-body: 'Outfit', 'Inter', sans-serif;
+  --title-weight: 800; --title-size: 56px;
+  --photo-radius: 14px; --photo-border: #FFFFFF;
+  --photo-shadow: 0 0 0 3px #111111, 7px 7px 0 3px #111111;
+  --shadow-soft: 6px 6px 0 #111111;
+}
+.theme-pop .sheet-deco {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 794 1123'%3E%3Cpath d='M610 40 l60 0 l-30 52z' fill='%23FF4F79' stroke='%23111' stroke-width='3'/%3E%3Ccircle cx='740' cy='300' r='26' fill='%233BCEAC' stroke='%23111' stroke-width='3'/%3E%3Cpath d='M20 330 q15 -20 30 0 t30 0 t30 0 t30 0' fill='none' stroke='%232D7DD2' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M700 980 l14 -14 l14 14 l14 -14 l14 14 l14 -14' fill='none' stroke='%23111' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='24' y='940' width='46' height='46' rx='6' fill='%23FFD23F' stroke='%23111' stroke-width='3' transform='rotate(14 47 963)'/%3E%3Ccircle cx='60' cy='60' r='9' fill='%23111'/%3E%3Ccircle cx='86' cy='72' r='5' fill='%23FF4F79'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+.theme-pop .sh-day { color: #FFD23F; -webkit-text-stroke: 3px #111111; text-shadow: 6px 6px 0 #111111; font-weight: 800; letter-spacing: -.03em; }
+.theme-pop .sh-month-name { font-style: normal; font-weight: 800; }
+.theme-pop .sh-brand { font-style: normal; font-family: var(--font-title); font-weight: 800; }
+.theme-pop .sh-chip { border: 2px solid #111111; box-shadow: 3px 3px 0 #111111; }
+.theme-pop .note, .theme-pop .checklist:not(.cl-paper), .theme-pop .plink { border: 2.5px solid #111111; border-radius: 14px; box-shadow: 6px 6px 0 #111111; }
+.theme-pop .note::before { display: none; }
+.theme-pop .note-title, .theme-pop .cl-title { font-family: var(--font-title); font-weight: 800; font-size: 22px; }
+.theme-pop .q-text { font-style: normal; font-weight: 800; font-family: var(--font-title); }
+
+/* ── Aurora ────────────────────────────────────────────────────────────── */
+.theme-aurora {
+  --paper: #EEF6FB;
+  --paper-pattern:
+    radial-gradient(80% 40% at 15% 6%, rgba(127, 231, 210, .9) 0, transparent 70%),
+    radial-gradient(70% 40% at 90% 20%, rgba(185, 162, 255, .85) 0, transparent 70%),
+    radial-gradient(60% 30% at 50% 100%, rgba(120, 200, 255, .5) 0, transparent 70%);
+  --paper-pattern-size: 100% 100%;
+  --ink: #102A43; --ink-soft: #1B3550; --muted: #486581;
+  --accent: #0E9F8E; --accent2: #7B4DDB; --accent2-ink: #5A2FB8;
+  --rule: rgba(16, 42, 67, .2); --foot-rule: rgba(16, 42, 67, .15);
+  --chip-bg: rgba(255, 255, 255, .6); --chip-ink: #0B6E63; --chip2-bg: rgba(255, 255, 255, .6); --chip2-ink: #5A2FB8; --chip3-bg: #102A43; --chip3-ink: #FFFFFF; --chip3-line: #102A43;
+  --tape: rgba(255, 255, 255, .6); --note-bg: rgba(255, 255, 255, .6);
+  --font-title: 'Outfit', sans-serif; --font-day: 'Outfit', sans-serif;
+  --title-weight: 700; --title-size: 54px;
+  --photo-radius: 18px; --photo-border: rgba(255, 255, 255, .85);
+  --photo-shadow: 0 18px 36px -16px rgba(16, 42, 67, .4);
+}
+.theme-aurora .sh-day { font-weight: 300; letter-spacing: -.05em; }
+.theme-aurora .sh-month-name { font-style: normal; font-weight: 600; }
+.theme-aurora .sh-brand { font-style: normal; font-family: var(--font-title); font-weight: 700; }
+.theme-aurora .note, .theme-aurora .checklist:not(.cl-paper) {
+  background: color-mix(in srgb, var(--nc, #FFFFFF) 45%, rgba(255, 255, 255, .4));
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-radius: 18px; border: 1px solid rgba(255, 255, 255, .8);
+}
+.theme-aurora .note::before { display: none; }
+
+/* ── New York ──────────────────────────────────────────────────────────── */
+.theme-newyork {
+  --paper: #F7F5EF;
+  --paper-pattern: linear-gradient(rgba(0, 0, 0, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, .045) 1px, transparent 1px);
+  --paper-pattern-size: 40px 40px;
+  --ink: #111111; --ink-soft: #1E1E1E; --muted: #555555;
+  --accent: #0039A6; --accent2: #F7B500; --accent2-ink: #8A5A00;
+  --rule: transparent; --foot-rule: #111111;
+  --chip-bg: #F7B500; --chip-ink: #111111; --chip2-bg: #EE352E; --chip2-ink: #FFFFFF; --chip3-bg: #00933C; --chip3-ink: #FFFFFF; --chip3-line: #00933C;
+  --tape: repeating-linear-gradient(-45deg, #F7B500 0 10px, #111111 10px 20px);
+  --note-bg: #F7B500;
+  --font-title: 'Anton', 'Impact', sans-serif; --font-day: 'Anton', 'Impact', sans-serif;
+  --title-weight: 400; --title-size: 46px;
+  --photo-radius: 0px; --photo-border: #FFFFFF; --photo-shadow: 0 16px 26px -14px rgba(0, 0, 0, .55);
+}
+.theme-newyork .sheet-deco {
+  background:
+    radial-gradient(circle, #EE352E 0 12px, transparent 12.5px) 430px 168px / 26px 26px no-repeat,
+    radial-gradient(circle, #FF6319 0 12px, transparent 12.5px) 462px 168px / 26px 26px no-repeat,
+    radial-gradient(circle, #FCCC0A 0 12px, transparent 12.5px) 494px 168px / 26px 26px no-repeat,
+    radial-gradient(circle, #00933C 0 12px, transparent 12.5px) 526px 168px / 26px 26px no-repeat,
+    radial-gradient(circle, #0039A6 0 12px, transparent 12.5px) 558px 168px / 26px 26px no-repeat,
+    conic-gradient(#F7B500 25%, #111111 0 50%, #F7B500 0 75%, #111111 0) 0 236px / 24px 24px repeat-x,
+    linear-gradient(#111111, #111111) 0 0 / 100% 236px no-repeat;
+}
+.theme-newyork .sh-run, .theme-newyork .sh-day, .theme-newyork .sh-month-name, .theme-newyork .sh-yw { color: #FFFFFF; }
+.theme-newyork .sh-brand { color: #F7B500; font-style: normal; font-family: 'Anton', sans-serif; letter-spacing: .06em; }
+.theme-newyork .sh-day { font-weight: 400; letter-spacing: 0; }
+.theme-newyork .sh-month-name { font-family: 'Anton', sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .04em; font-size: 40px; }
+.theme-newyork .sh-chip { border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+.theme-newyork .sh-title { top: 286px; text-transform: uppercase; line-height: 1; letter-spacing: .01em; }
+.theme-newyork .note, .theme-newyork .checklist:not(.cl-paper) { border-radius: 2px; }
+.theme-newyork .note-title, .theme-newyork .cl-title { font-family: 'Anton', sans-serif; font-weight: 400; text-transform: uppercase; font-size: 24px; letter-spacing: .02em; }
+.theme-newyork .q-text { font-family: 'Anton', sans-serif; font-style: normal; text-transform: uppercase; }
+
+/* ── Tokyo (neon) ──────────────────────────────────────────────────────── */
+.theme-tokyo {
+  --paper: #0D0B1A;
+  --paper-pattern: linear-gradient(rgba(255, 43, 214, .1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, .08) 1px, transparent 1px);
+  --paper-pattern-size: 32px 32px;
+  --ink: #F2F0FF; --ink-soft: #E4E0FF; --muted: #A79FD0;
+  --accent: #FF2BD6; --accent2: #00E5FF; --accent2-ink: #5CF0FF;
+  --rule: #FF2BD6; --foot-rule: #3A2E66;
+  --chip-bg: rgba(255, 43, 214, .16); --chip-ink: #FF8BEA; --chip2-bg: rgba(0, 229, 255, .14); --chip2-ink: #7CF3FF; --chip3-bg: transparent; --chip3-ink: #F2F0FF; --chip3-line: #5B4BA8;
+  --tape: rgba(0, 229, 255, .35); --note-bg: #1A1433;
+  --font-title: 'Orbitron', sans-serif; --font-day: 'Orbitron', sans-serif;
+  --title-weight: 800; --title-size: 42px;
+  --photo-radius: 6px; --photo-border: #1A1433;
+  --photo-shadow: 0 0 0 2px #FF2BD6, 0 0 26px rgba(255, 43, 214, .55);
+  --shadow-soft: 0 0 0 1px rgba(0, 229, 255, .7), 0 0 22px rgba(0, 229, 255, .35);
+}
+.theme-tokyo .sheet-deco { background: radial-gradient(70% 22% at 50% 100%, rgba(255, 43, 214, .28), transparent 70%), radial-gradient(50% 18% at 50% 0%, rgba(0, 229, 255, .18), transparent 70%); }
+.theme-tokyo .sh-rule { box-shadow: 0 0 10px rgba(255, 43, 214, .8); }
+.theme-tokyo .sh-day { color: #00E5FF; font-size: 108px; font-weight: 900; top: 96px; text-shadow: 0 0 10px rgba(0, 229, 255, .85), 0 0 34px rgba(0, 229, 255, .5); }
+.theme-tokyo .sh-month { left: 238px; }
+.sheet[dir="rtl"].theme-tokyo .sh-month { left: auto; right: 238px; }
+.theme-tokyo .sh-month-name { font-family: 'Orbitron', sans-serif; font-style: normal; font-size: 26px; text-transform: uppercase; letter-spacing: .08em; color: #FF8BEA; text-shadow: 0 0 12px rgba(255, 43, 214, .7); }
+.theme-tokyo .sh-brand { font-style: normal; font-family: 'Orbitron', sans-serif; color: #00E5FF; }
+.theme-tokyo .sh-title { text-shadow: 0 0 6px rgba(255, 43, 214, .9), 0 0 26px rgba(255, 43, 214, .55); letter-spacing: .01em; line-height: 1.12; }
+.theme-tokyo .sh-chip { border: 1px solid currentColor; }
+.theme-tokyo .note, .theme-tokyo .checklist:not(.cl-paper), .theme-tokyo .plink { background: rgba(26, 20, 51, .9); color: var(--ink); border: 1px solid #00E5FF; border-radius: 10px; }
+.theme-tokyo .note::before { display: none; }
+.theme-tokyo .note-title, .theme-tokyo .cl-title { color: #FF8BEA; font-family: 'Orbitron', sans-serif; font-size: 18px; text-shadow: 0 0 10px rgba(255, 43, 214, .6); }
+.theme-tokyo .q-text { font-style: normal; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 12px rgba(255, 43, 214, .6); }
+
+/* ── Paris ─────────────────────────────────────────────────────────────── */
+.theme-paris {
+  --paper: #FDF6F0; --paper-pattern: none;
+  --ink: #1F2A44; --ink-soft: #26314E; --muted: #5B6480;
+  --accent: #B23A48; --accent2: #C9A24B; --accent2-ink: #8C6A1F;
+  --rule: #1F2A44; --foot-rule: #E2D3C3;
+  --chip-bg: #F6DCE0; --chip-ink: #8A2433; --chip2-bg: #1F2A44; --chip2-ink: #FDF6F0; --chip3-bg: #FFFFFF; --chip3-ink: #1F2A44; --chip3-line: #C9A24B;
+  --tape: rgba(201, 162, 75, .55); --note-bg: #FFFFFF;
+  --font-title: 'Playfair Display', Georgia, serif; --font-day: 'Playfair Display', Georgia, serif;
+  --title-style: italic; --title-weight: 500;
+  --photo-radius: 2px; --photo-shadow: 0 14px 26px -14px rgba(31, 42, 68, .45);
+}
+.theme-paris .sheet-deco {
+  background: repeating-linear-gradient(#1F2A44 0 4px, transparent 4px 11px) 0 0 / 100% 33px no-repeat;
+}
+/* thin double gold frame */
+.theme-paris .sheet-deco::after {
+  content: ''; position: absolute; inset: 40px 20px 20px; border: 1px solid rgba(201, 162, 75, .75);
+  outline: 1px solid rgba(201, 162, 75, .45); outline-offset: -6px;
+}
+.theme-paris .sh-day { font-weight: 700; }
+.theme-paris .sh-month-name { color: var(--accent); }
+.theme-paris .note { border: 1px solid rgba(201, 162, 75, .6); }
+
+/* ── Miami (retro sunset) ──────────────────────────────────────────────── */
+.theme-miami {
+  --paper: #FFF1EC;
+  --paper-pattern: linear-gradient(#FFD6E7 0%, #FFF4E6 52%, #D2F7F4 100%);
+  --paper-pattern-size: 100% 100%;
+  --ink: #2D1E4A; --ink-soft: #35255A; --muted: #6E5A8A;
+  --accent: #E8347F; --accent2: #00B3B8; --accent2-ink: #00787C;
+  --rule: transparent; --foot-rule: #F3B6CF;
+  --chip-bg: #FF4F9A; --chip-ink: #FFFFFF; --chip2-bg: #00B3B8; --chip2-ink: #FFFFFF; --chip3-bg: #FFC24B; --chip3-ink: #2D1E4A; --chip3-line: #FFC24B;
+  --tape: rgba(0, 179, 184, .45); --note-bg: #FFFFFF;
+  --font-title: 'Pacifico', cursive; --font-day: 'Outfit', sans-serif;
+  --title-weight: 400; --title-size: 48px;
+  --photo-radius: 18px; --photo-shadow: 0 18px 30px -14px rgba(232, 52, 127, .5);
+}
+.theme-miami .sheet-deco::before {
+  content: ''; position: absolute; right: 50px; top: 88px; width: 210px; height: 210px; border-radius: 50%;
+  background: linear-gradient(#FFD23F, #FF8A3D 45%, #FF4F9A);
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% 50% no-repeat, repeating-linear-gradient(#000 0 13px, transparent 13px 19px);
+  mask: linear-gradient(#000 0 0) top / 100% 50% no-repeat, repeating-linear-gradient(#000 0 13px, transparent 13px 19px);
+}
+.theme-miami .sheet-deco::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 44px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10 Q10 0 20 10 T40 10 T60 10 T80 10 V20 H0z' fill='%2300B3B8' fill-opacity='.55'/%3E%3C/svg%3E") 0 0 / 80px 44px repeat-x;
+}
+.theme-miami .sh-day { font-weight: 800; letter-spacing: -.04em; background: linear-gradient(#FF4F9A, #FF8A3D); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.theme-miami .sh-month-name { font-family: 'Pacifico', cursive; font-style: normal; color: var(--accent2-ink); font-size: 32px; }
+.theme-miami .sh-brand { font-family: 'Pacifico', cursive; font-style: normal; color: var(--accent); }
+.theme-miami .sh-title { line-height: 1.25; }
+.theme-miami .note::before { background: rgba(255, 79, 154, .55); }
+
+/* ── Dubai ─────────────────────────────────────────────────────────────── */
+.theme-dubai {
+  --paper: #FBF4E8;
+  --paper-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23A8740A' stroke-opacity='.13' stroke-width='1'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/%3E%3C/g%3E%3C/svg%3E");
+  --paper-pattern-size: 56px 56px;
+  --ink: #2A1E10; --ink-soft: #33261A; --muted: #7A6447;
+  --accent: #A8740A; --accent2: #0F6E6E; --accent2-ink: #0F6E6E;
+  --rule: #A8740A; --foot-rule: #E3CFA8;
+  --chip-bg: #F2E2BF; --chip-ink: #6B4A06; --chip2-bg: #D7ECEA; --chip2-ink: #0B4F4F; --chip3-bg: #2A1E10; --chip3-ink: #FBF4E8; --chip3-line: #2A1E10;
+  --tape: rgba(168, 116, 10, .45); --note-bg: #FFF8EA;
+  --font-title: 'Playfair Display', Georgia, serif; --font-day: 'Playfair Display', Georgia, serif;
+  --title-weight: 600;
+  --photo-radius: 4px; --photo-border: #FFFBF2; --photo-shadow: 0 16px 28px -14px rgba(90, 60, 10, .5);
+}
+.theme-dubai .sheet-deco {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 794 160' preserveAspectRatio='none'%3E%3Cpath fill='%23A8740A' fill-opacity='.16' d='M0 160 V120 h40 v-30 h30 v40 h26 V70 h22 v60 h30 V100 h34 v-50 l10 -12 l10 12 v80 h28 V82 h24 v48 h22 V20 l6 -20 l6 20 v20 h4 v90 h30 V90 h26 l14 -20 l14 20 v40 h30 V60 h40 v70 h24 V96 h30 v34 h28 V40 c12 -10 24 -10 36 0 v90 h24 V88 h30 v42 h36 V104 h24 v26 h40 V78 h30 v52 h52 V110 h30 v50z'/%3E%3C/svg%3E") 0 900px / 100% 150px no-repeat,
+    linear-gradient(transparent 62%, rgba(241, 222, 192, .7));
+}
+.theme-dubai .sh-rule { height: 2px; background: linear-gradient(90deg, transparent, #A8740A 12%, #A8740A 88%, transparent); }
+.theme-dubai .sh-day { font-weight: 700; color: #A8740A; }
+.theme-dubai .sh-month-name { color: var(--accent2); }
