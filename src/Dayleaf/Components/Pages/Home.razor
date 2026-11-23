@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @inject ISpaceService Spaces
 @inject ITimelineService Timeline
 @inject IPageService Pages
@@ -13,28 +13,28 @@
 <div class="page-wrap">
     <header class="home-head">
         <div style="display:flex;flex-direction:column;gap:6px">
-            <span class="home-date">@_now.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture)</span>
+            <span class="home-date">@L.Date(_now.DateTime, DateStyle.Long)</span>
             <h1 class="page-title">@Greeting</h1>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
             <form class="searchbox" role="search" @onsubmit="SearchAsync">
                 <Icon Name="search" Size="16" />
-                <label class="sr-only" for="home-q">Search pages</label>
-                <input id="home-q" type="search" placeholder="Search pages, dates, places…" @bind="_q" />
+                <label class="sr-only" for="home-q">@L["Search pages"]</label>
+                <input id="home-q" type="search" dir="auto" placeholder="@L["Search pages, dates, places…"]" @bind="_q" />
             </form>
             @if (_spaces.Count > 0)
             {
-                <button type="button" class="btn btn-primary" @onclick="NewToday"><Icon Name="plus" Size="16" />New page for today</button>
+                <button type="button" class="btn btn-primary" @onclick="NewToday"><Icon Name="plus" Size="16" />@L["New page for today"]</button>
             }
         </div>
     </header>
 
     @if (_loaded && _spaces.Count == 0)
     {
-        <EmptyState IconName="book" Title="Create your first space" Text="A space is a notebook for one part of your life — a farm, a project, a family, a trip. Each day gets its own beautiful A4 page.">
+        <EmptyState IconName="book" Title="@L["Create your first space"]" Text="@L["A space is a notebook for one part of your life — a farm, a project, a family, a trip. Each day gets its own beautiful A4 page."]">
             <div class="empty-actions">
-                <button type="button" class="btn btn-primary" @onclick="() => _newSpace = true"><Icon Name="plus" Size="16" />Create a space</button>
-                <button type="button" class="btn btn-secondary" disabled="@_seeding" @onclick="SeedAsync"><Icon Name="sparkle" Size="16" />@(_seeding ? "Planting…" : "Open the sample notebook")</button>
+                <button type="button" class="btn btn-primary" @onclick="() => _newSpace = true"><Icon Name="plus" Size="16" />@L["Create a space"]</button>
+                <button type="button" class="btn btn-secondary" disabled="@_seeding" @onclick="SeedAsync"><Icon Name="sparkle" Size="16" />@(_seeding ? L["Planting…"] : L["Open the sample notebook"])</button>
             </div>
         </EmptyState>
     }
@@ -42,8 +42,8 @@
     {
         <section aria-labelledby="spaces-h" style="display:flex;flex-direction:column;gap:16px">
             <div class="section-head">
-                <h2 id="spaces-h">Spaces</h2>
-                <span class="muted" style="font-size:13px">@_spaces.Count space@(_spaces.Count == 1 ? "" : "s") · @_spaces.Sum(s => s.PageCount) pages</span>
+                <h2 id="spaces-h">@L["Spaces"]</h2>
+                <span class="muted" style="font-size:13px">@L.Count(_spaces.Count, Noun.Space) · @L.Count(_spaces.Sum(s => s.PageCount), Noun.Page)</span>
             </div>
             <div class="space-grid">
                 @foreach (var s in _spaces)
@@ -57,20 +57,20 @@
                             }
                             else
                             {
-                                <span class="space-cover-text" style="color:@c.InkOnTint">@(s.Space.Description ?? "a page for every day")</span>
+                                <span class="space-cover-text" dir="auto" style="color:@c.InkOnTint">@(s.Space.Description ?? L["a page for every day"])</span>
                             }
                             <span class="space-badge">@s.Space.Emoji</span>
                         </div>
                         <div class="space-info">
-                            <span class="space-name">@s.Space.Name</span>
+                            <span class="space-name" dir="auto">@s.Space.Name</span>
                             @if (s.PageCount == 0)
                             {
-                                <span class="space-meta">No pages yet</span>
-                                <span class="space-cta">+ Write the first page</span>
+                                <span class="space-meta">@L["No pages yet"]</span>
+                                <span class="space-cta">@L["+ Write the first page"]</span>
                             }
                             else
                             {
-                                <span class="space-meta">@s.PageCount page@(s.PageCount == 1 ? "" : "s") · @RangeText(s)</span>
+                                <span class="space-meta">@L.Count(s.PageCount, Noun.Page) · @RangeText(s)</span>
                                 <span class="chip" style="margin-top:6px;align-self:flex-start;background:@c.Tint;color:@c.InkOnTint">@StatusText(s)</span>
                             }
                         </div>
@@ -81,8 +81,8 @@
 
         <section aria-labelledby="recent-h" style="display:flex;flex-direction:column;gap:16px">
             <div class="section-head">
-                <h2 id="recent-h">Latest pages</h2>
-                <a href="/search" style="font-size:13px;font-weight:600">Search all</a>
+                <h2 id="recent-h">@L["Latest pages"]</h2>
+                <a href="/search" style="font-size:13px;font-weight:600">@L["Search all"]</a>
             </div>
             <div class="thumb-row">
                 @foreach (var (r, model) in _latest)
@@ -90,13 +90,13 @@
                     <a class="thumb-link" href="@r.Url">
                         <PageThumb Model="model" Width="180" />
                         <span class="thumb-cap">
-                            <strong>@r.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</strong>
-                            <span>@r.SpaceName · Page @r.Number</span>
+                            <strong>@L.Date(r.Date, DateStyle.Short)</strong>
+                            <span><bdi>@r.SpaceName</bdi> · @L["Page {0}", r.Number]</span>
                         </span>
                     </a>
                 }
                 <button type="button" class="thumb-new" style="width:180px;height:255px" @onclick="NewToday">
-                    <Icon Name="edit" Size="28" Stroke="1.6" />Start today's page
+                    <Icon Name="edit" Size="28" Stroke="1.6" />@L["Start today's page"]
                 </button>
             </div>
         </section>
@@ -105,8 +105,8 @@
         {
             <section aria-labelledby="otd-h" style="display:flex;flex-direction:column;gap:16px">
                 <div class="section-head">
-                    <h2 id="otd-h">On this day</h2>
-                    <span class="hand" style="font-size:20px;color:var(--marigold-ink)">@_now.ToString("MMMM d", CultureInfo.InvariantCulture), in other years</span>
+                    <h2 id="otd-h">@L["On this day"]</h2>
+                    <span class="hand" style="font-size:20px;color:var(--marigold-ink)">@L["{0}, in other years", L.Date(_now.DateTime, DateStyle.MonthDayLong)]</span>
                 </div>
                 <div class="otd">
                     @foreach (var r in _onThisDay)
@@ -122,8 +122,8 @@
                             }
                             <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
                                 <span class="otd-years">@YearsAgo(r.Date)</span>
-                                <strong style="font-family:var(--font-display);font-weight:500;font-size:17px">@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</strong>
-                                <span class="muted" style="font-size:12px">@r.SpaceName · @r.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                                <strong dir="auto" style="font-family:var(--font-display);font-weight:500;font-size:17px">@(string.IsNullOrWhiteSpace(r.Title) ? L["Untitled page"] : r.Title)</strong>
+                                <span class="muted" style="font-size:12px"><bdi>@r.SpaceName</bdi> · @L.Date(r.Date, DateStyle.Short)</span>
                             </span>
                         </a>
                     }
@@ -135,13 +135,13 @@
 
 <SpaceDialog @bind-Open="_newSpace" OnSaved="OnSpaceCreated" />
 
-<Modal @bind-Open="_pickSpace" Title="Today's page goes in…">
+<Modal @bind-Open="_pickSpace" Title="@L["Today's page goes in…"]">
     <div class="picker-list">
         @foreach (var s in _spaces)
         {
             <button type="button" class="picker-item" @onclick="() => OpenToday(s.Space)">
                 <span class="picker-ico">@s.Space.Emoji</span>
-                <span><strong>@s.Space.Name</strong><small>@s.PageCount pages</small></span>
+                <span><strong dir="auto">@s.Space.Name</strong><small>@L.Count(s.PageCount, Noun.Page)</small></span>
             </button>
         }
     </div>
@@ -157,11 +157,11 @@
 
     private string Greeting => _now.Hour switch
     {
-        < 5 => "Still up? Write it down.",
-        < 12 => "Good morning.",
-        < 17 => "Good afternoon.",
-        < 22 => "Good evening.",
-        _ => "Good night.",
+        < 5 => L["Still up? Write it down."],
+        < 12 => L["Good morning."],
+        < 17 => L["Good afternoon."],
+        < 22 => L["Good evening."],
+        _ => L["Good night."],
     };
 
     protected override async Task OnInitializedAsync()
@@ -199,13 +199,13 @@
         try
         {
             await Seed.SeedAsync();
-            Toasts.Success("The sample notebook is ready — have a look around.");
+            Toasts.Success(L["The sample notebook is ready — have a look around."]);
             Events.NotifySpacesChanged();
             await LoadAsync();
         }
         catch (Exception ex)
         {
-            Toasts.Error("Couldn't create the sample: " + ex.Message);
+            Toasts.Error(L["Couldn't create the sample: {0}", ex.Message]);
         }
         finally
         {
@@ -221,22 +221,28 @@
 
     private string RangeText(SpaceSummary s) =>
         s.FirstDate == s.LastDate
-            ? s.LastDate!.Value.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
+            ? L.Date(s.LastDate!.Value, DateStyle.Short)
             : s.FirstDate!.Value.Year == s.LastDate!.Value.Year && s.PageCount > 0 && s.LastDate.Value.Year == _now.Year
-                ? $"latest {s.LastDate.Value.ToString("MMM d", CultureInfo.InvariantCulture)}"
-                : $"{s.FirstDate.Value.ToString("MMM yyyy", CultureInfo.InvariantCulture)} → {s.LastDate.Value.ToString("MMM yyyy", CultureInfo.InvariantCulture)}";
+                ? L["latest {0}", L.Date(s.LastDate.Value, DateStyle.MonthDay)]
+                : L["{0} → {1}", L.Date(s.FirstDate.Value, DateStyle.MonthYear), L.Date(s.LastDate.Value, DateStyle.MonthYear)];
 
     private string StatusText(SpaceSummary s)
     {
-        if (s.SharedCount > 0) return $"Shared · {s.SharedCount} page{(s.SharedCount == 1 ? "" : "s")} public";
-        if (s.LastActivity is not { } a) return "Quiet for now";
+        if (s.SharedCount > 0) return L["Shared · {0} public", L.Count(s.SharedCount, Noun.Page)];
+        if (s.LastActivity is not { } a) return L["Quiet for now"];
         var days = (int)(_now - a).TotalDays;
-        return days switch { 0 => "Updated today", 1 => "Updated yesterday", < 30 => $"Updated {days} days ago", _ => $"Last page {a.ToLocalTime():MMM d}" };
+        return days switch
+        {
+            0 => L["Updated today"],
+            1 => L["Updated yesterday"],
+            < 30 => L["Updated {0} ago", L.Count(days, Noun.Day)],
+            _ => L["Last page {0}", L.Date(a.ToLocalTime().DateTime, DateStyle.MonthDay)],
+        };
     }
 
     private string YearsAgo(DateOnly d)
     {
         var y = _now.Year - d.Year;
-        return y == 1 ? "1 year ago" : $"{y} years ago";
+        return L["{0} ago", L.Count(y, Noun.Year)];
     }
 }

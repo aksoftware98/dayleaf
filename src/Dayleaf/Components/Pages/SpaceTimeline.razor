@@ -7,28 +7,28 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<PageTitle>@(_space?.Name ?? "Space") · Dayleaf</PageTitle>
+<PageTitle>@(_space?.Name ?? L["Space"]) · Dayleaf</PageTitle>
 
 @if (_notFound)
 {
-    <div class="page-wrap"><EmptyState IconName="search" Title="That space isn't here" Text="It may have been renamed or deleted."><a class="btn btn-primary" href="/">Back to spaces</a></EmptyState></div>
+    <div class="page-wrap"><EmptyState IconName="search" Title="@L["That space isn't here"]" Text="@L["It may have been renamed or deleted."]"><a class="btn btn-primary" href="/">@L["Back to spaces"]</a></EmptyState></div>
 }
 else if (_space is not null)
 {
     var color = SpaceColors.Get(_space.Color);
     <div class="topbar">
-        <nav class="crumbs" aria-label="Breadcrumb">
-            <a href="/"><Icon Name="back" Size="16" />Spaces</a>
+        <nav class="crumbs" aria-label="@L["Breadcrumb"]">
+            <a href="/"><Icon Name="back" Size="16" />@L["Spaces"]</a>
             <span aria-hidden="true">/</span>
-            <strong>@_space.Name</strong>
+            <strong dir="auto">@_space.Name</strong>
         </nav>
         <div class="toolbar">
             <label class="btn btn-secondary" style="position:relative">
-                <Icon Name="calendar" Size="16" />Jump to date
-                <input type="date" aria-label="Jump to date" style="position:absolute;inset:0;opacity:0;cursor:pointer" @onchange="JumpTo" />
+                <Icon Name="calendar" Size="16" />@L["Jump to date"]
+                <input type="date" aria-label="@L["Jump to date"]" style="position:absolute;inset:0;opacity:0;cursor:pointer" @onchange="JumpTo" />
             </label>
-            <a class="icon-btn" href="@($"/s/{_space.Slug}/settings")" aria-label="Space settings"><Icon Name="settings" /></a>
-            <a class="btn btn-primary" href="@($"/s/{_space.Slug}/{_today:yyyy-MM-dd}?new=1")"><Icon Name="plus" Size="16" />Today's page</a>
+            <a class="icon-btn" href="@($"/s/{_space.Slug}/settings")" aria-label="@L["Space settings"]"><Icon Name="settings" /></a>
+            <a class="btn btn-primary" href="@($"/s/{_space.Slug}/{_today:yyyy-MM-dd}?new=1")"><Icon Name="plus" Size="16" />@L["Today's page"]</a>
         </div>
     </div>
 
@@ -41,8 +41,8 @@ else if (_space is not null)
         <div class="banner-body">
             <span class="banner-emoji">@_space.Emoji</span>
             <div>
-                <h1>@_space.Name</h1>
-                <p>@_total page@(_total == 1 ? "" : "s")@(string.IsNullOrWhiteSpace(_space.Description) ? "" : $" · {_space.Description}")</p>
+                <h1 dir="auto">@_space.Name</h1>
+                <p>@L.Count(_total, Noun.Page)@if (!string.IsNullOrWhiteSpace(_space.Description)) { <span> · <bdi>@_space.Description</bdi></span> }</p>
             </div>
         </div>
     </section>
@@ -50,11 +50,11 @@ else if (_space is not null)
     @if (_total == 0)
     {
         <div class="page-wrap">
-            <EmptyState IconName="edit" Title="No pages yet" Text="Every day can have one page. Start with today, or go back and fill in a day you want to remember.">
+            <EmptyState IconName="edit" Title="@L["No pages yet"]" Text="@L["Every day can have one page. Start with today, or go back and fill in a day you want to remember."]">
                 <div class="empty-actions">
-                    <a class="btn btn-primary" href="@($"/s/{_space.Slug}/{_today:yyyy-MM-dd}?new=1")"><Icon Name="plus" Size="16" />Write today's page</a>
-                    <label class="btn btn-secondary" style="position:relative"><Icon Name="calendar" Size="16" />Pick another date
-                        <input type="date" aria-label="Pick a date" style="position:absolute;inset:0;opacity:0;cursor:pointer" @onchange="JumpTo" />
+                    <a class="btn btn-primary" href="@($"/s/{_space.Slug}/{_today:yyyy-MM-dd}?new=1")"><Icon Name="plus" Size="16" />@L["Write today's page"]</a>
+                    <label class="btn btn-secondary" style="position:relative"><Icon Name="calendar" Size="16" />@L["Pick another date"]
+                        <input type="date" aria-label="@L["Pick a date"]" style="position:absolute;inset:0;opacity:0;cursor:pointer" @onchange="JumpTo" />
                     </label>
                 </div>
             </EmptyState>
@@ -62,7 +62,7 @@ else if (_space is not null)
     }
     else
     {
-        <section class="scrubber" aria-label="Timeline">
+        <section class="scrubber" aria-label="@L["Timeline"]">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                 <div class="year-pills">
                     @foreach (var y in _years)
@@ -70,13 +70,13 @@ else if (_space is not null)
                         <button type="button" class="pill" aria-pressed="@(_year == y ? "true" : "false")" @onclick="() => SetYearAsync(y)">@y</button>
                     }
                 </div>
-                <span class="muted" style="font-size:13px">Tap a month to filter · use ← → to move page by page</span>
+                <span class="muted" style="font-size:13px">@L["Tap a month to filter · use ← → to move page by page"]</span>
             </div>
             <MonthStrip Counts="_months" Selected="_month" SelectedChanged="SetMonthAsync" />
         </section>
 
         <div class="timeline-body">
-            <ol class="tl" aria-label="Pages by date">
+            <ol class="tl" aria-label="@L["Pages by date"]">
                 @for (var i = 0; i < _list.Count; i++)
                 {
                     var r = _list[i];
@@ -84,17 +84,17 @@ else if (_space is not null)
                     <li class="@(current ? "is-current" : "")" @key="r.Id">
                         <div class="tl-date">
                             <span class="tl-day">@r.Date.Day.ToString("00")</span>
-                            <span class="tl-mon">@r.Date.ToString("MMM", CultureInfo.InvariantCulture)</span>
+                            <span class="tl-mon">@L.Date(r.Date, DateStyle.MonthAbbr)</span>
                         </div>
                         <div class="tl-axis"><span class="tl-dot"></span><span class="tl-line"></span></div>
                         @if (current)
                         {
                             <a class="tl-card" href="@r.Url">
-                                <div class="tl-row-meta"><strong>Page @r.Number · @r.Date.DayOfWeek</strong><span>@r.PhotoCount photo@(r.PhotoCount == 1 ? "" : "s") · @r.StickerCount sticker@(r.StickerCount == 1 ? "" : "s")</span></div>
-                                <span class="tl-big-title">@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</span>
+                                <div class="tl-row-meta"><strong>@L["Page {0}", r.Number] · @L.Date(r.Date, DateStyle.Weekday)</strong><span>@L.Count(r.PhotoCount, Noun.Photo) · @L.Count(r.StickerCount, Noun.Sticker)</span></div>
+                                <span class="tl-big-title" dir="auto">@(string.IsNullOrWhiteSpace(r.Title) ? L["Untitled page"] : r.Title)</span>
                                 @if (!string.IsNullOrWhiteSpace(r.Excerpt))
                                 {
-                                    <span class="tl-excerpt">@r.Excerpt</span>
+                                    <span class="tl-excerpt" dir="auto">@r.Excerpt</span>
                                 }
                                 @if (r.PhotoIds.Count > 0)
                                 {
@@ -105,7 +105,7 @@ else if (_space is not null)
                                         }
                                     </div>
                                 }
-                                <span style="font-size:13px;font-weight:600;color:var(--forest)">Open page →</span>
+                                <span style="font-size:13px;font-weight:600;color:var(--forest)">@L["Open page →"]</span>
                             </a>
                         }
                         else
@@ -122,8 +122,8 @@ else if (_space is not null)
                                     }
                                 </span>
                                 <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
-                                    <span class="tl-card-title">@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</span>
-                                    <span class="tl-card-meta">Page @r.Number · @r.Date.ToString("dddd", CultureInfo.InvariantCulture)</span>
+                                    <span class="tl-card-title" dir="auto">@(string.IsNullOrWhiteSpace(r.Title) ? L["Untitled page"] : r.Title)</span>
+                                    <span class="tl-card-meta">@L["Page {0}", r.Number] · @L.Date(r.Date, DateStyle.Weekday)</span>
                                 </span>
                             </button>
                         }
@@ -131,24 +131,24 @@ else if (_space is not null)
                 }
                 @if (_list.Count == 0)
                 {
-                    <li class="muted" style="padding:20px 0">No pages in this month.</li>
+                    <li class="muted" style="padding:20px 0">@L["No pages in this month."]</li>
                 }
             </ol>
 
             @if (_selected is not null)
             {
-                <aside class="preview" aria-label="Page preview">
-                    <a href="@_selected.Url" aria-label="Open page">
+                <aside class="preview" aria-label="@L["Page preview"]">
+                    <a href="@_selected.Url" aria-label="@L["Open page"]">
                         <PageThumb Model="_preview" Width="397" />
                     </a>
                     <div class="preview-nav">
-                        <button type="button" class="nav-card @(_pn?.Prev is null ? "disabled" : "")" @onclick="() => MoveAsync(-1)" aria-label="Previous page">
+                        <button type="button" class="nav-card @(_pn?.Prev is null ? "disabled" : "")" @onclick="() => MoveAsync(-1)" aria-label="@L["Previous page"]">
                             <Icon Name="back" Size="16" />
-                            <span class="nav-card-txt"><strong>@(_pn?.Prev?.Date.ToString("MMM d", CultureInfo.InvariantCulture) ?? "First page")</strong>@if (_pn?.Prev is { } pv) {<small>Page @pv.Number</small>}</span>
+                            <span class="nav-card-txt"><strong>@(_pn?.Prev is { } pd ? L.Date(pd.Date, DateStyle.MonthDay) : L["First page"])</strong>@if (_pn?.Prev is { } pv) {<small>@L["Page {0}", pv.Number]</small>}</span>
                         </button>
-                        <a class="btn btn-dark" href="@_selected.Url" style="flex:1.3">Open page</a>
-                        <button type="button" class="nav-card @(_pn?.Next is null ? "disabled" : "")" style="justify-content:flex-end;text-align:right" @onclick="() => MoveAsync(1)" aria-label="Next page">
-                            <span class="nav-card-txt"><strong>@(_pn?.Next?.Date.ToString("MMM d", CultureInfo.InvariantCulture) ?? "Latest")</strong>@if (_pn?.Next is { } nx) {<small>Page @nx.Number</small>}</span>
+                        <a class="btn btn-dark" href="@_selected.Url" style="flex:1.3">@L["Open page"]</a>
+                        <button type="button" class="nav-card @(_pn?.Next is null ? "disabled" : "")" style="justify-content:flex-end;text-align:end" @onclick="() => MoveAsync(1)" aria-label="@L["Next page"]">
+                            <span class="nav-card-txt"><strong>@(_pn?.Next is { } nd ? L.Date(nd.Date, DateStyle.MonthDay) : L["Latest"])</strong>@if (_pn?.Next is { } nx) {<small>@L["Page {0}", nx.Number]</small>}</span>
                             <Icon Name="forward" Size="16" />
                         </button>
                     </div>

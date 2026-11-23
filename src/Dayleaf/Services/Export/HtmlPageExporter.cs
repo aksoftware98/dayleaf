@@ -69,10 +69,12 @@ public sealed class HtmlPageExporter(
         var css = await File.ReadAllTextAsync(Path.Combine(env.WebRootPath, "sheet.css"));
         var fonts = await InlineFontsAsync();
         var safeTitle = WebUtility.HtmlEncode(title);
+        var lang = Dayleaf.Localization.Lang.Normalize(models.FirstOrDefault()?.Language);
+        var dir = Dayleaf.Localization.Lang.Dir(lang);
 
         return $$$"""
             <!doctype html>
-            <html lang="en">
+            <html lang="{{{lang}}}" dir="{{{dir}}}">
             <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">

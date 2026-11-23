@@ -51,6 +51,21 @@ public sealed class SeedService(
         b.Photo(farmImg, "polaroid", 552, 836, 188, 172, 3, zoom: 2.4, focusX: 10, focusY: 50, caption: "the old row, one last look", alt: "The old row of trees");
         b.Emoji("🌳", 708, 808, 50, 10);
 
+        // ── Our Farm · an Arabic page (right to left) ─────────────────────────
+        var ar = NewPage(db, farm, new DateOnly(2026, 11, 20), "أول مطر على الأرض الجديدة", "field", ["🌧️ ماطر", "🌱 بداية جديدة", "📍 سرغايا"]);
+        ar.Language = "ar";
+        var arSec = Locked(db, ar, "المساء", At(2026, 11, 20, 18, 30));
+        var a = new ElementBuilder(db, ar, arSec);
+        a.Emoji("🌧️", 70, 292, 76, -10);
+        a.Photo(farmImg, "taped", 284, 384, 460, 310, 2, focusY: 62, alt: "طريق البستان في الخريف");
+        a.Photo(farmImg, "round", 60, 372, 190, 190, -6, zoom: 3.4, focusX: 50, focusY: 70, alt: "الجرار الأحمر بين الأشجار");
+        a.Label("جرارنا الأحمر، ما زال يعمل بلا تعب 🚜", 44, 566, 212, 60, 3);
+        a.Quote("القرار", "نزرع من جديد، ولا نرمّم.", 298, 728, 440, 72);
+        a.Text("<p>هطل أول مطر حقيقي على الأرض بعد أن اقتلعنا الأشجار القديمة. كانت التربة عطشى، وشربت كل قطرة.</p><p>غداً نبدأ بتحديد أماكن الشتلات الجديدة. صفحة جديدة للمزرعة، بالعربية هذه المرة.</p>",
+            298, 808, 440, 200);
+        a.Checklist("قبل الربيع", [("اقتلاع الأشجار اليابسة", true), ("تنظيف الصفوف الأولى", true), ("تسميد التربة", false), ("اختيار الشتلات", false)],
+            48, 650, 220, 190, -1.5, "mint");
+
         // ── Our Farm · history ────────────────────────────────────────────────
         FarmEntry(db, farm, new(2026, 10, 28), "First rain of the season", "🌧️", "<p>The first real rain of autumn. The dust finally settled and the whole valley smelled like wet earth. The old trees drank it up — maybe for the last time.</p>", "sky");
         var harvest = FarmEntry(db, farm, new(2026, 10, 9), "Last harvest from the old rows", "🍎", "<p>We picked what the old rows could still give. Small apples, a little sour, but ours. Packed eleven crates and gave three away to the neighbours.</p>", "pink", farmImg);

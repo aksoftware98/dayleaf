@@ -7,7 +7,7 @@
         <div class="toast toast-@t.Kind.ToString().ToLowerInvariant()" @key="t.Id">
             <Icon Name="@(t.Kind == ToastKind.Error ? "close" : t.Kind == ToastKind.Success ? "tick" : "sparkle")" Size="16" />
             <span>@t.Text</span>
-            <button type="button" class="toast-x" aria-label="Dismiss" @onclick="() => Toasts.Dismiss(t.Id)"><Icon Name="close" Size="14" /></button>
+            <button type="button" class="toast-x" aria-label="@L["Dismiss"]" @onclick="() => Toasts.Dismiss(t.Id)"><Icon Name="close" Size="14" /></button>
         </div>
     }
 </div>

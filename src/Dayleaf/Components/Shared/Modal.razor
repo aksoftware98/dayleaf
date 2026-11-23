@@ -4,7 +4,7 @@
     <div class="modal @(Wide ? "modal-wide" : "")" role="dialog" aria-modal="true" aria-labelledby="@_titleId" @onkeydown="OnKey">
         <header class="modal-head">
             <h2 id="@_titleId">@Title</h2>
-            <button type="button" class="icon-btn" aria-label="Close" @onclick="Close"><Icon Name="close" /></button>
+            <button type="button" class="icon-btn" aria-label="@L["Close"]" @onclick="Close"><Icon Name="close" /></button>
         </header>
         <div class="modal-body">@ChildContent</div>
         @if (Footer is not null)

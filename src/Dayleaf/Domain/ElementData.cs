@@ -21,7 +21,7 @@ public sealed class TextData : ElementData
     public string Size { get; set; } = "m";       // s, m, l, xl
     public string Font { get; set; } = "body";    // body, display, hand, mono
     public string Color { get; set; } = "ink";    // ink, accent, accent2, muted
-    public string Align { get; set; } = "left";   // left, center, right
+    public string Align { get; set; } = "start"; // start, center, end (logical); left/right kept for older pages
     public string? Highlight { get; set; }        // null, marker, box
     public override string? SearchText() => Html;
 }
@@ -32,7 +32,7 @@ public sealed class HeadingData : ElementData
     public string Text { get; set; } = "";
     public string Size { get; set; } = "l";       // m, l, xl
     public string Color { get; set; } = "ink";
-    public string Align { get; set; } = "left";
+    public string Align { get; set; } = "start"; // start, center, end (logical); left/right kept for older pages
     public override string? SearchText() => Text;
 }
 

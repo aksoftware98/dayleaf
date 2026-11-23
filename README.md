@@ -4,6 +4,17 @@ A notebook for everything in your life. Organize it into **spaces**; each space 
 
 Built with .NET 10 Blazor (Interactive Server), EF Core + SQLite, and a small vanilla-JS canvas engine. See [DAYLEAF_PLAN.md](DAYLEAF_PLAN.md) for the full spec.
 
+## العربية · Arabic
+
+Dayleaf speaks English and Arabic. Switch with **English / العربية** at the bottom of the sidebar (or on the sign-in page); your browser's language is used until you choose.
+
+- The whole interface is translated and mirrors right-to-left.
+- Each space and each page has its own **page language**. Arabic pages read right to left, print Arabic month and weekday names (Gregorian calendar, Western digits), and place new items on the right. An Arabic page stays Arabic in PDFs, shares and exports, whatever language the viewer uses.
+- Arabic text anywhere (even on an English page) flows right to left on its own.
+- Arabic fonts are built in and matched to each theme: IBM Plex Sans Arabic (body), Amiri (serif titles), Cairo (bold titles), Aref Ruqaa (handwriting).
+- Search ignores hamza, taa marbuta, alef maqsura and tashkeel differences (احمد finds أحمد), and understands Arabic months in both naming styles: "يونيو 2025", "حزيران 2025".
+- Spaces with Arabic names get Arabic addresses, e.g. `/s/يومياتي`.
+
 ## Run it
 
 Open `Dayleaf.slnx` in Visual Studio 2022 (17.13+) or later and press F5, or:

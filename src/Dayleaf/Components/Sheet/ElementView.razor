@@ -17,11 +17,11 @@
         {
             case TextData t:
                 <div class="el-text tx-@t.Size tx-font-@t.Font tx-color-@t.Color tx-align-@t.Align @(t.Highlight is null ? "" : "tx-hl-" + t.Highlight)"
-                     data-edit-field="html" data-placeholder="Write something…">@((MarkupString)t.Html)</div>
+                     dir="auto" data-edit-field="html" data-placeholder="@L["Write something…"]">@((MarkupString)t.Html)</div>
                 break;
 
             case HeadingData h:
-                <div class="el-heading hd-@h.Size tx-color-@h.Color tx-align-@h.Align" data-edit-field="text" data-plain="true" data-placeholder="Heading">@h.Text</div>
+                <div class="el-heading hd-@h.Size tx-color-@h.Color tx-align-@h.Align" dir="auto" data-edit-field="text" data-plain="true" data-placeholder="@L["Heading"]">@h.Text</div>
                 break;
 
             case PhotoData p:
@@ -35,7 +35,7 @@
                     </div>
                     @if (p.Style == "polaroid")
                     {
-                        <figcaption data-edit-field="caption" data-plain="true" data-placeholder="add a caption">@p.Caption</figcaption>
+                        <figcaption dir="auto" data-edit-field="caption" data-plain="true" data-placeholder="@L["add a caption"]">@p.Caption</figcaption>
                     }
                     @if (p.Style == "taped")
                     {
@@ -51,14 +51,14 @@
 
             case NoteData n:
                 <div class="note note-@n.Color">
-                    <div class="note-title" data-edit-field="title" data-plain="true" data-placeholder="@(Mode == SheetMode.Edit ? "Title" : "")">@n.Title</div>
-                    <div class="note-body" data-edit-field="html" data-placeholder="Jot it down…">@((MarkupString)n.Html)</div>
+                    <div class="note-title" dir="auto" data-edit-field="title" data-plain="true" data-placeholder="@(Mode == SheetMode.Edit ? L["Title"] : "")">@n.Title</div>
+                    <div class="note-body" dir="auto" data-edit-field="html" data-placeholder="@L["Jot it down…"]">@((MarkupString)n.Html)</div>
                 </div>
                 break;
 
             case ChecklistData c:
                 <div class="checklist cl-@c.Color">
-                    <div class="cl-title" data-edit-field="title" data-plain="true" data-placeholder="@(Mode == SheetMode.Edit ? "List" : "")">@c.Title</div>
+                    <div class="cl-title" dir="auto" data-edit-field="title" data-plain="true" data-placeholder="@(Mode == SheetMode.Edit ? L["List"] : "")">@c.Title</div>
                     <ul>
                         @for (var i = 0; i < c.Items.Count; i++)
                         {
@@ -67,7 +67,7 @@
                                 <span class="cl-box" data-check-index="@i" role="checkbox" aria-checked="@(item.Done ? "true" : "false")" aria-label="@item.Text">
                                     <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7" /></svg>
                                 </span>
-                                <span class="cl-text" data-edit-field="@($"item:{i}")" data-plain="true" data-placeholder="item">@item.Text</span>
+                                <span class="cl-text" dir="auto" data-edit-field="@($"item:{i}")" data-plain="true" data-placeholder="@L["item"]">@item.Text</span>
                             </li>
                         }
                     </ul>
@@ -83,16 +83,16 @@
                         <span class="plink-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>
                         </span>
-                        <span class="plink-txt"><span class="plink-title">@(e.LinkTargetPageId is null ? "Link a page" : "Page not available")</span>
-                            <span class="plink-meta">@(e.LinkTargetPageId is null ? "Choose a page in the panel" : "It was deleted or isn't in this notebook")</span></span>
+                        <span class="plink-txt"><span class="plink-title">@(e.LinkTargetPageId is null ? L["Link a page"] : P("Page not available"))</span>
+                            <span class="plink-meta">@(e.LinkTargetPageId is null ? L["Choose a page in the panel"] : P("It was deleted or isn't in this notebook"))</span></span>
                     </div>
                 }
                 else if (compact)
                 {
                     <a class="plink plink-compact" href="@card.Url">
-                        <span class="plink-kicker">@(card.Date < Model.Date ? "← EARLIER" : "LATER →")</span>
-                        <span class="plink-txt"><span class="plink-title">@(string.IsNullOrWhiteSpace(card.Title) ? card.Date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture) : card.Title)</span>
-                            <span class="plink-meta">@card.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) · Page @card.Number</span></span>
+                        <span class="plink-kicker">@(card.Date < Model.Date ? P("← EARLIER") : P("LATER →"))</span>
+                        <span class="plink-txt"><span class="plink-title" dir="auto">@(string.IsNullOrWhiteSpace(card.Title) ? Dates.Format(card.Date, DateStyle.LongNoWeekday, Pl) : card.Title)</span>
+                            <span class="plink-meta">@Dates.Format(card.Date, DateStyle.Short, Pl) · @P("Page") @card.Number</span></span>
                     </a>
                 }
                 else
@@ -109,12 +109,12 @@
                             }
                         </span>
                         <span class="plink-txt">
-                            <span class="plink-kicker">@card.SpaceEmoji @card.SpaceName.ToUpperInvariant() · PAGE @card.Number</span>
-                            <span class="plink-title">@(string.IsNullOrWhiteSpace(card.Title) ? "Untitled page" : card.Title)</span>
-                            <span class="plink-meta">@card.Date.ToString("dddd, MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                            <span class="plink-kicker">@card.SpaceEmoji <bdi>@(Pl == Lang.Ar ? card.SpaceName : card.SpaceName.ToUpperInvariant())</bdi> · @P("PAGE") @card.Number</span>
+                            <span class="plink-title" dir="auto">@(string.IsNullOrWhiteSpace(card.Title) ? P("Untitled page") : card.Title)</span>
+                            <span class="plink-meta">@Dates.Format(card.Date, DateStyle.WeekdayShort, Pl)</span>
                             @if (!string.IsNullOrWhiteSpace(pl.Note))
                             {
-                                <span class="plink-note">@pl.Note</span>
+                                <span class="plink-note" dir="auto">@pl.Note</span>
                             }
                         </span>
                     </a>
@@ -123,13 +123,13 @@
 
             case QuoteData q:
                 <div class="quote">
-                    <span class="q-label" data-edit-field="label" data-plain="true" data-placeholder="LABEL">@q.Label</span>
-                    <span class="q-text" data-edit-field="text" data-plain="true" data-placeholder="Say it in one line.">@q.Text</span>
+                    <span class="q-label" dir="auto" data-edit-field="label" data-plain="true" data-placeholder="@L["LABEL"]">@q.Label</span>
+                    <span class="q-text" dir="auto" data-edit-field="text" data-plain="true" data-placeholder="@L["Say it in one line."]">@q.Text</span>
                 </div>
                 break;
 
             case LabelData lb:
-                <div class="hand-label tx-color-@lb.Color lb-@lb.Size" data-edit-field="text" data-plain="true" data-placeholder="a little note">@lb.Text</div>
+                <div class="hand-label tx-color-@lb.Color lb-@lb.Size" dir="auto" data-edit-field="text" data-plain="true" data-placeholder="@L["a little note"]">@lb.Text</div>
                 break;
 
             case DividerData d:
@@ -215,6 +215,9 @@
     [Parameter] public bool Selected { get; set; }
 
     // Print/share/PDF must have every photo loaded before the page is printed; lazy images below the fold come out blank.
+    private string Pl => Lang.Normalize(Model.Language);
+    private string P(string key) => Loc.TFor(Pl, key);
+
     private string Loading => Mode == SheetMode.Print ? "eager" : "lazy";
 
     private bool LockAspect => Item.Data is EmojiData || Item.Data is PhotoData { Style: "round" };

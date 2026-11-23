@@ -6,30 +6,30 @@
 @inject ToastService Toasts
 @inject AppEvents Events
 
-<PageTitle>Library · Dayleaf</PageTitle>
+<PageTitle>@L["Library"] · Dayleaf</PageTitle>
 
 <div class="page-wrap">
     <header style="display:flex;flex-direction:column;gap:6px">
-        <h1 class="page-title">Library</h1>
-        <p class="muted" style="margin:0">Back up, move or share your notebook as a single <strong>.dayleaf</strong> file — a zip with your pages and full-quality photos inside.</p>
+        <h1 class="page-title">@L["Library"]</h1>
+        <p class="muted" style="margin:0">@L["Back up, move or share your notebook as a single .dayleaf file — a zip with your pages and full-quality photos inside."]</p>
     </header>
 
     <div class="panel-grid">
         <section class="panel">
-            <h2>Export</h2>
-            <p>Everything, in one file. Keep it somewhere safe.</p>
-            <a class="btn btn-primary" href="/export/library.dayleaf" download><Icon Name="download" Size="16" />Export the whole library</a>
+            <h2>@L["Export"]</h2>
+            <p>@L["Everything, in one file. Keep it somewhere safe."]</p>
+            <a class="btn btn-primary" href="/export/library.dayleaf" download><Icon Name="download" Size="16" />@L["Export the whole library"]</a>
             @if (_spaces.Count > 0)
             {
-                <div class="smallcaps" style="margin-top:6px">Or one space</div>
+                <div class="smallcaps" style="margin-top:6px">@L["Or one space"]</div>
                 <div class="list-rows">
                     @foreach (var s in _spaces)
                     {
                         <div class="list-row">
                             <span style="font-size:22px">@s.Space.Emoji</span>
-                            <span style="flex:1;min-width:0"><strong>@s.Space.Name</strong><span class="muted" style="display:block;font-size:12px">@s.PageCount pages</span></span>
+                            <span style="flex:1;min-width:0"><strong dir="auto">@s.Space.Name</strong><span class="muted" style="display:block;font-size:12px">@L.Count(s.PageCount, Noun.Page)</span></span>
                             <a class="btn btn-secondary btn-sm" href="@($"/export/space/{s.Space.Id}.dayleaf")" download><Icon Name="download" Size="14" />.dayleaf</a>
-                            <a class="btn btn-ghost btn-sm" href="@($"/export/space/{s.Space.Id}.pdf")" download><Icon Name="book" Size="14" />Book PDF</a>
+                            <a class="btn btn-ghost btn-sm" href="@($"/export/space/{s.Space.Id}.pdf")" download><Icon Name="book" Size="14" />@L["Book PDF"]</a>
                         </div>
                     }
                 </div>
@@ -37,13 +37,13 @@
         </section>
 
         <section class="panel">
-            <h2>Import</h2>
-            <p>Bring in a .dayleaf file. Spaces are always added as new ones — nothing you have is overwritten. Locked sections stay locked.</p>
+            <h2>@L["Import"]</h2>
+            <p>@L["Bring in a .dayleaf file. Spaces are always added as new ones — nothing you have is overwritten. Locked sections stay locked."]</p>
             @if (_manifest is { Kind: "page" })
             {
-                <label class="field">This file holds a single page. Put it in…
+                <label class="field">@L["This file holds a single page. Put it in…"]
                     <select class="select" @bind="_targetSpace">
-                        <option value="">Choose a space</option>
+                        <option value="">@L["Choose a space"]</option>
                         @foreach (var s in _spaces)
                         {
                             <option value="@s.Space.Id">@s.Space.Emoji @s.Space.Name</option>
@@ -51,17 +51,17 @@
                     </select>
                 </label>
                 <div style="display:flex;gap:8px">
-                    <button type="button" class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_targetSpace) || _busy)" @onclick="ImportPendingAsync">Import page</button>
-                    <button type="button" class="btn btn-ghost" @onclick="Reset">Cancel</button>
+                    <button type="button" class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_targetSpace) || _busy)" @onclick="ImportPendingAsync">@L["Import page"]</button>
+                    <button type="button" class="btn btn-ghost" @onclick="Reset">@L["Cancel"]</button>
                 </div>
             }
             else
             {
                 <div class="dropzone">
                     <Icon Name="upload" Size="28" Stroke="1.6" />
-                    <strong>@(_busy ? "Importing…" : "Drop a .dayleaf file here, or click to choose")</strong>
-                    <span class="hint">Up to 2 GB</span>
-                    <InputFile accept=".dayleaf,.zip" OnChange="OnFileAsync" disabled="@_busy" aria-label="Choose a .dayleaf file" />
+                    <strong>@(_busy ? L["Importing…"] : L["Drop a .dayleaf file here, or click to choose"])</strong>
+                    <span class="hint">@L["Up to 2 GB"]</span>
+                    <InputFile accept=".dayleaf,.zip" OnChange="OnFileAsync" disabled="@_busy" aria-label="@L["Choose a .dayleaf file"]" />
                 </div>
             }
             @if (_result is not null)
@@ -75,10 +75,10 @@
         </section>
 
         <section class="panel">
-            <h2>Tidy up</h2>
-            <p>Remove photos that no page or space uses any more (for example after deleting pages).</p>
-            <button type="button" class="btn btn-secondary" disabled="@_busy" @onclick="CleanupAsync"><Icon Name="sparkle" Size="16" />Clean up unused photos</button>
-            <p class="hint">Your notebook lives in <code style="word-break:break-all">@Paths.DataDirectory</code>. A backup of the database is made every time Dayleaf starts.</p>
+            <h2>@L["Tidy up"]</h2>
+            <p>@L["Remove photos that no page or space uses any more (for example after deleting pages)."]</p>
+            <button type="button" class="btn btn-secondary" disabled="@_busy" @onclick="CleanupAsync"><Icon Name="sparkle" Size="16" />@L["Clean up unused photos"]</button>
+            <p class="hint">@L["Your notebook lives in"] <code dir="ltr" style="word-break:break-all">@Paths.DataDirectory</code>. @L["A backup of the database is made every time Dayleaf starts."]</p>
         </section>
     </div>
 </div>
@@ -161,6 +161,6 @@
         _busy = true;
         var n = await Media.CleanupOrphansAsync();
         _busy = false;
-        Toasts.Success(n == 0 ? "Nothing to clean up" : $"Removed {n} unused photo{(n == 1 ? "" : "s")}");
+        Toasts.Success(n == 0 ? L["Nothing to clean up"] : L["Removed {0} that nothing used", L.Count(n, Noun.Photo)]);
     }
 }

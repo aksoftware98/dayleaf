@@ -6,34 +6,34 @@
 @inject ToastService Toasts
 @inject AppEvents Events
 
-<PageTitle>Settings · @(_space?.Name ?? "Space")</PageTitle>
+<PageTitle>@L["Settings"] · @(_space?.Name ?? L["Space"])</PageTitle>
 
 @if (_space is null)
 {
     @if (_loaded)
     {
-        <div class="page-wrap"><EmptyState IconName="search" Title="That space isn't here"><a class="btn btn-primary" href="/">Back to spaces</a></EmptyState></div>
+        <div class="page-wrap"><EmptyState IconName="search" Title="@L["That space isn't here"]"><a class="btn btn-primary" href="/">@L["Back to spaces"]</a></EmptyState></div>
     }
 }
 else
 {
     <div class="topbar">
-        <nav class="crumbs" aria-label="Breadcrumb">
-            <a href="/"><Icon Name="back" Size="16" />Spaces</a>
+        <nav class="crumbs" aria-label="@L["Breadcrumb"]">
+            <a href="/"><Icon Name="back" Size="16" />@L["Spaces"]</a>
             <span aria-hidden="true">/</span>
-            <a href="@($"/s/{_space.Slug}")">@_space.Name</a>
+            <a href="@($"/s/{_space.Slug}")" dir="auto">@_space.Name</a>
             <span aria-hidden="true">/</span>
-            <strong>Settings</strong>
+            <strong>@L["Settings"]</strong>
         </nav>
     </div>
     <div class="page-wrap">
-        <h1 class="page-title">@_space.Emoji @_space.Name</h1>
+        <h1 class="page-title">@_space.Emoji <bdi>@_space.Name</bdi></h1>
         <div class="settings-grid">
             <div style="display:flex;flex-direction:column;gap:20px">
                 <section class="panel">
-                    <h2>Look & feel</h2>
-                    <label class="field">Name<input class="input" @bind="_name" maxlength="100" /></label>
-                    <div class="field">Icon
+                    <h2>@L["Look & feel"]</h2>
+                    <label class="field">@L["Name"]<input class="input" dir="auto" @bind="_name" maxlength="100" /></label>
+                    <div class="field">@L["Icon"]
                         <div class="emoji-pick">
                             @foreach (var e in EmojiCatalog.SpaceIcons)
                             {
@@ -41,39 +41,48 @@ else
                             }
                         </div>
                     </div>
-                    <div class="field">Color
+                    <div class="field">@L["Color"]
                         <div class="swatches">
                             @foreach (var c in SpaceColors.All)
                             {
-                                <button type="button" class="swatch" style="background:@c.Hex" aria-label="@c.Name" aria-pressed="@(_color == c.Id ? "true" : "false")" @onclick="() => _color = c.Id"></button>
+                                <button type="button" class="swatch" style="background:@c.Hex" aria-label="@L[c.Name]" title="@L[c.Name]" aria-pressed="@(_color == c.Id ? "true" : "false")" @onclick="() => _color = c.Id"></button>
                             }
                         </div>
                     </div>
-                    <label class="field">Description<input class="input" @bind="_description" maxlength="200" /></label>
-                    <div class="field">Default theme for new pages<ThemePicker Value="@_theme" ValueChanged="v => _theme = v" ShowShuffle="false" /></div>
-                    <div><button type="button" class="btn btn-primary" @onclick="SaveAsync">Save changes</button></div>
+                    <label class="field">@L["Description"]<input class="input" dir="auto" @bind="_description" maxlength="200" /></label>
+                    <div class="field">@L["Pages are written in"]
+                        <div class="seg" role="group" aria-label="@L["Page language"]">
+                            @foreach (var lc in Lang.All)
+                            {
+                                <button type="button" lang="@lc" aria-pressed="@(_language == lc ? "true" : "false")" @onclick="() => _language = lc">@Lang.NativeName(lc)</button>
+                            }
+                        </div>
+                        <span class="hint">@L["For new pages. Existing pages keep their language; change it on each page."]</span>
+                    </div>
+                    <div class="field">@L["Default theme for new pages"]<ThemePicker Value="@_theme" ValueChanged="v => _theme = v" ShowShuffle="false" /></div>
+                    <div><button type="button" class="btn btn-primary" @onclick="SaveAsync">@L["Save changes"]</button></div>
                 </section>
 
                 <section class="panel">
-                    <h2>Cover photo</h2>
+                    <h2>@L["Cover photo"]</h2>
                     <div class="space-cover" style="height:160px;border-radius:14px;overflow:hidden;background:@SpaceColors.Get(_space.Color).Tint">
                         @if (_space.CoverMediaId is { } cover)
                         {
-                            <img src="/media/@cover.ToString("N")" alt="Cover" />
+                            <img src="/media/@cover.ToString("N")" alt="@L["Cover"]" />
                         }
                         else
                         {
-                            <span class="space-cover-text" style="color:@SpaceColors.Get(_space.Color).InkOnTint">No cover yet</span>
+                            <span class="space-cover-text" style="color:@SpaceColors.Get(_space.Color).InkOnTint">@L["No cover yet"]</span>
                         }
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
                         <label class="btn btn-secondary" style="position:relative">
-                            <Icon Name="upload" Size="16" />Upload a cover
+                            <Icon Name="upload" Size="16" />@L["Upload a cover"]
                             <InputFile accept="image/jpeg,image/png,image/webp" OnChange="OnCoverAsync" style="position:absolute;inset:0;opacity:0;cursor:pointer" />
                         </label>
                         @if (_space.CoverMediaId is not null)
                         {
-                            <button type="button" class="btn btn-ghost" @onclick="RemoveCoverAsync">Remove cover</button>
+                            <button type="button" class="btn btn-ghost" @onclick="RemoveCoverAsync">@L["Remove cover"]</button>
                         }
                     </div>
                 </section>
@@ -81,26 +90,26 @@ else
 
             <div style="display:flex;flex-direction:column;gap:20px">
                 <section class="panel">
-                    <h2>Export</h2>
-                    <a class="btn btn-secondary" href="@($"/export/space/{_space.Id}.dayleaf")" download><Icon Name="download" Size="16" />Download .dayleaf</a>
-                    <div class="smallcaps">Print as a book</div>
+                    <h2>@L["Export"]</h2>
+                    <a class="btn btn-secondary" href="@($"/export/space/{_space.Id}.dayleaf")" download><Icon Name="download" Size="16" />@L["Download .dayleaf"]</a>
+                    <div class="smallcaps">@L["Print as a book"]</div>
                     <div class="field-row">
-                        <label class="field">From<input class="input" type="date" @bind="_from" /></label>
-                        <label class="field">To<input class="input" type="date" @bind="_to" /></label>
+                        <label class="field">@L["From"]<input class="input" type="date" @bind="_from" /></label>
+                        <label class="field">@L["To"]<input class="input" type="date" @bind="_to" /></label>
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
-                        <a class="btn btn-primary" href="@BookPdfUrl" download><Icon Name="download" Size="16" />Download book PDF</a>
-                        <a class="btn btn-secondary" href="@BookUrl" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Preview & print</a>
+                        <a class="btn btn-primary" href="@BookPdfUrl" download><Icon Name="download" Size="16" />@L["Download book PDF"]</a>
+                        <a class="btn btn-secondary" href="@BookUrl" target="_blank" rel="noopener"><Icon Name="print" Size="16" />@L["Preview & print"]</a>
                     </div>
                 </section>
 
                 <section class="panel danger-zone">
-                    <h2>Delete space</h2>
-                    <p>This removes <strong>@_space.Name</strong> and all @_pageCount of its pages, including locked ones. It can't be undone — export it first.</p>
-                    <label class="field">Type <strong>@_space.Name</strong> to confirm
-                        <input class="input" @bind="_confirm" @bind:event="oninput" autocomplete="off" />
+                    <h2>@L["Delete space"]</h2>
+                    <p>@L["This removes “{0}” and all its pages ({1}), including locked ones. It can't be undone — export it first.", _space.Name, L.Count(_pageCount, Noun.Page)]</p>
+                    <label class="field">@L["Type “{0}” to confirm", _space.Name]
+                        <input class="input" dir="auto" @bind="_confirm" @bind:event="oninput" autocomplete="off" />
                     </label>
-                    <button type="button" class="btn btn-danger" disabled="@(_confirm?.Trim() != _space.Name.Trim())" @onclick="DeleteAsync"><Icon Name="trash" Size="16" />Delete this space</button>
+                    <button type="button" class="btn btn-danger" disabled="@(_confirm?.Trim() != _space.Name.Trim())" @onclick="DeleteAsync"><Icon Name="trash" Size="16" />@L["Delete this space"]</button>
                 </section>
             </div>
         </div>
@@ -112,7 +121,7 @@ else
     private Space? _space;
     private bool _loaded;
     private int _pageCount;
-    private string _name = "", _emoji = "", _color = "", _theme = "";
+    private string _name = "", _emoji = "", _color = "", _theme = "", _language = Lang.En;
     private string? _description, _confirm;
     private DateOnly? _from, _to;
 
@@ -124,7 +133,7 @@ else
         _space = await Spaces.GetBySlugAsync(Slug);
         _loaded = true;
         if (_space is null) return;
-        (_name, _emoji, _color, _description, _theme) = (_space.Name, _space.Emoji, _space.Color, _space.Description, _space.DefaultTheme);
+        (_name, _emoji, _color, _description, _theme, _language) = (_space.Name, _space.Emoji, _space.Color, _space.Description, _space.DefaultTheme, _space.DefaultLanguage);
         _pageCount = (await Timeline.ListPagesAsync(_space.Id)).Count;
     }
 
@@ -132,8 +141,8 @@ else
     {
         try
         {
-            var s = await Spaces.UpdateAsync(_space!.Id, _name, _emoji, _color, _description, _theme);
-            Toasts.Success("Saved");
+            var s = await Spaces.UpdateAsync(_space!.Id, _name, _emoji, _color, _description, _theme, _language);
+            Toasts.Success(L["Saved"]);
             Events.NotifySpacesChanged();
             if (s.Slug != Slug) Nav.NavigateTo($"/s/{s.Slug}/settings", replace: true);
             else _space = s;
@@ -153,7 +162,7 @@ else
             var m = await Media.SaveAsync(stream, e.File.Name);
             await Spaces.SetCoverAsync(_space!.Id, m.Id);
             _space = await Spaces.GetAsync(_space.Id);
-            Toasts.Success("Cover updated");
+            Toasts.Success(L["Cover updated"]);
         }
         catch (Exception ex)
         {
@@ -172,7 +181,7 @@ else
         try
         {
             await Spaces.DeleteAsync(_space!.Id, _confirm ?? "");
-            Toasts.Show($"Deleted {_space.Name}");
+            Toasts.Show(L["Deleted {0}", _space.Name]);
             Events.NotifySpacesChanged();
             Nav.NavigateTo("/");
         }

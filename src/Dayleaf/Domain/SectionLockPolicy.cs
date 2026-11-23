@@ -1,3 +1,4 @@
+using Dayleaf.Localization;
 using Microsoft.Extensions.Options;
 
 namespace Dayleaf.Domain;
@@ -58,8 +59,12 @@ public sealed class SectionLockPolicy
     public void EnsureEditable(Section s, DateTimeOffset now)
     {
         if (IsLocked(s, now))
-            throw new SectionLockedException(
-                $"The “{s.Label}” section was locked on {LockAt(s, now)!.Value.ToLocalTime():MMM d, yyyy 'at' HH:mm}. Locked content can't be changed — add a new section instead.");
+        {
+            var at = LockAt(s, now)!.Value.ToLocalTime();
+            throw new SectionLockedException(Loc.T(
+                "The “{0}” section was locked on {1} at {2}. Locked content can't be changed — add a new section instead.",
+                s.Label, Dates.Format(at.DateTime, DateStyle.Short), Dates.Time(at)));
+        }
     }
 
     /// <summary>Page metadata (title, date, theme, tags) follows the lock of the page's first section.</summary>
@@ -72,14 +77,14 @@ public sealed class SectionLockPolicy
     public void EnsureMetaEditable(IEnumerable<Section> sections, DateTimeOffset now)
     {
         if (!IsMetaEditable(sections, now))
-            throw new SectionLockedException("This page's title, date, theme and tags are locked because its first section is locked.");
+            throw new SectionLockedException(Loc.T("This page's title, date, theme and tags are locked because its first section is locked."));
     }
 
     public static string FormatSpan(TimeSpan t)
     {
-        if (t.TotalMinutes < 1) return "less than a minute";
-        if (t.TotalHours < 1) return $"{(int)t.TotalMinutes}m";
-        if (t.TotalDays < 1) return $"{(int)t.TotalHours}h {t.Minutes}m";
-        return $"{(int)t.TotalDays}d {t.Hours}h";
+        if (t.TotalMinutes < 1) return Loc.T("less than a minute");
+        if (t.TotalHours < 1) return Loc.T("{0}m", (int)t.TotalMinutes);
+        if (t.TotalDays < 1) return Loc.T("{0}h {1}m", (int)t.TotalHours, t.Minutes);
+        return Loc.T("{0}d {1}h", (int)t.TotalDays, t.Hours);
     }
 }

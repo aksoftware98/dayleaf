@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Localization;
+using Dayleaf.Localization;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,6 +55,7 @@ builder.Services.AddScoped<HtmlPageExporter>();
 builder.Services.AddSingleton<PdfRenderer>();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AppEvents>();
+builder.Services.AddSingleton<Loc>();
 
 // ── optional password gate ──────────────────────────────────────────────────
 builder.Services.AddDataProtection()
@@ -104,6 +107,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+// Language: the culture cookie (set by /lang/{code}) wins, then the browser's Accept-Language. Default English.
+app.UseRequestLocalization(new RequestLocalizationOptions()
+    .SetDefaultCulture(Lang.En)
+    .AddSupportedCultures(Lang.All)
+    .AddSupportedUICultures(Lang.All));
+
 // Without auth, refuse anything that doesn't come from this machine.
 if (!options.Auth.Enabled)
 {
@@ -112,7 +121,7 @@ if (!options.Auth.Enabled)
         if (!PasswordGate.IsLocal(ctx))
         {
             ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await ctx.Response.WriteAsync("Dayleaf only accepts connections from this computer until a password is set (Dayleaf:Auth:PasswordHash).");
+            await ctx.Response.WriteAsync(Loc.T("Dayleaf only accepts connections from this computer until a password is set (Dayleaf:Auth:PasswordHash)."));
             return;
         }
         await next();
@@ -131,6 +140,16 @@ app.MapGet("/logout", async ctx =>
 {
     await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     ctx.Response.Redirect("/login");
+}).AllowAnonymous();
+app.MapGet("/lang/{code}", (string code, string? r, HttpContext ctx) =>
+{
+    var lang = Lang.Normalize(code);
+    ctx.Response.Cookies.Append(CookieRequestCultureProvider.DefaultCookieName,
+        CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(lang)),
+        new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, SameSite = SameSiteMode.Lax, HttpOnly = true });
+    // Only ever go back to a local path.
+    var back = !string.IsNullOrEmpty(r) && r.StartsWith('/') && !r.StartsWith("//") && !r.StartsWith("/\\") ? r : "/";
+    return Results.LocalRedirect(back);
 }).AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

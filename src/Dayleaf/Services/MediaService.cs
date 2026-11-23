@@ -1,3 +1,4 @@
+using Dayleaf.Localization;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using Dayleaf.Data;
@@ -54,7 +55,7 @@ public sealed class MediaService(
                 while ((read = await content.ReadAsync(buffer, ct)) > 0)
                 {
                     size += read;
-                    if (size > MaxUploadBytes) throw new DayleafRuleException($"That file is bigger than {options.Value.MaxUploadMb} MB.");
+                    if (size > MaxUploadBytes) throw new DayleafRuleException(Loc.T("That file is bigger than {0} MB.", options.Value.MaxUploadMb));
                     if (headLen < head.Length)
                     {
                         var n = Math.Min(head.Length - headLen, read);
@@ -68,7 +69,7 @@ public sealed class MediaService(
             }
 
             var kind = ImageSniffer.Detect(head.AsSpan(0, headLen))
-                       ?? throw new DayleafRuleException("That doesn't look like a JPEG, PNG, WebP or GIF image.");
+                       ?? throw new DayleafRuleException(Loc.T("That doesn't look like a JPEG, PNG, WebP or GIF image."));
 
             await using var db = await dbf.CreateDbContextAsync();
             var existing = await db.Media.AsNoTracking().FirstOrDefaultAsync(m => m.Sha256 == sha, ct);

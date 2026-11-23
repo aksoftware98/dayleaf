@@ -1,3 +1,4 @@
+using Dayleaf.Localization;
 using Dayleaf.Data;
 using Dayleaf.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -10,8 +11,8 @@ public interface ISpaceService
     Task<Space?> GetBySlugAsync(string slug);
     Task<Space?> GetAsync(Guid id);
     Task<SpaceSummary?> GetSummaryAsync(Guid id);
-    Task<Space> CreateAsync(string name, string emoji, string color, string? description, string? defaultTheme);
-    Task<Space> UpdateAsync(Guid id, string name, string emoji, string color, string? description, string defaultTheme);
+    Task<Space> CreateAsync(string name, string emoji, string color, string? description, string? defaultTheme, string? defaultLanguage = null);
+    Task<Space> UpdateAsync(Guid id, string name, string emoji, string color, string? description, string defaultTheme, string? defaultLanguage = null);
     Task SetCoverAsync(Guid id, Guid? mediaId);
     Task DeleteAsync(Guid id, string typedName);
     Task<string> UniqueSlugAsync(string name, Guid? exceptId = null);
@@ -65,11 +66,11 @@ public sealed class SpaceService(IDbContextFactory<DayleafDbContext> dbf, TimePr
         return await db.Spaces.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
     }
 
-    public async Task<Space> CreateAsync(string name, string emoji, string color, string? description, string? defaultTheme)
+    public async Task<Space> CreateAsync(string name, string emoji, string color, string? description, string? defaultTheme, string? defaultLanguage = null)
     {
         name = (name ?? "").Trim();
-        if (name.Length == 0) throw new DayleafRuleException("Give the space a name.");
-        if (name.Length > 120) throw new DayleafRuleException("That name is a little long — keep it under 120 characters.");
+        if (name.Length == 0) throw new DayleafRuleException(Loc.T("Give the space a name."));
+        if (name.Length > 120) throw new DayleafRuleException(Loc.T("That name is a little long — keep it under 120 characters."));
         await using var db = await dbf.CreateDbContextAsync();
         var space = new Space
         {
@@ -79,6 +80,7 @@ public sealed class SpaceService(IDbContextFactory<DayleafDbContext> dbf, TimePr
             Color = SpaceColors.Get(color).Id,
             Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             DefaultTheme = Themes.Get(defaultTheme).Id,
+            DefaultLanguage = Lang.Normalize(defaultLanguage ?? Lang.Current),
             CreatedAt = clock.GetUtcNow(),
         };
         db.Spaces.Add(space);
@@ -86,12 +88,12 @@ public sealed class SpaceService(IDbContextFactory<DayleafDbContext> dbf, TimePr
         return space;
     }
 
-    public async Task<Space> UpdateAsync(Guid id, string name, string emoji, string color, string? description, string defaultTheme)
+    public async Task<Space> UpdateAsync(Guid id, string name, string emoji, string color, string? description, string defaultTheme, string? defaultLanguage = null)
     {
         name = (name ?? "").Trim();
-        if (name.Length == 0) throw new DayleafRuleException("Give the space a name.");
+        if (name.Length == 0) throw new DayleafRuleException(Loc.T("Give the space a name."));
         await using var db = await dbf.CreateDbContextAsync();
-        var space = await db.Spaces.FirstOrDefaultAsync(s => s.Id == id) ?? throw new DayleafRuleException("That space no longer exists.");
+        var space = await db.Spaces.FirstOrDefaultAsync(s => s.Id == id) ?? throw new DayleafRuleException(Loc.T("That space no longer exists."));
         if (space.Name != name)
         {
             space.Name = name;
@@ -101,6 +103,7 @@ public sealed class SpaceService(IDbContextFactory<DayleafDbContext> dbf, TimePr
         space.Color = SpaceColors.Get(color).Id;
         space.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
         space.DefaultTheme = Themes.Get(defaultTheme).Id;
+        if (defaultLanguage is not null) space.DefaultLanguage = Lang.Normalize(defaultLanguage);
         await db.SaveChangesAsync();
         return space;
     }
@@ -108,7 +111,7 @@ public sealed class SpaceService(IDbContextFactory<DayleafDbContext> dbf, TimePr
     public async Task SetCoverAsync(Guid id, Guid? mediaId)
     {
         await using var db = await dbf.CreateDbContextAsync();
-        var space = await db.Spaces.FirstOrDefaultAsync(s => s.Id == id) ?? throw new DayleafRuleException("That space no longer exists.");
+        var space = await db.Spaces.FirstOrDefaultAsync(s => s.Id == id) ?? throw new DayleafRuleException(Loc.T("That space no longer exists."));
         space.CoverMediaId = mediaId;
         await db.SaveChangesAsync();
     }
@@ -116,9 +119,9 @@ public sealed class SpaceService(IDbContextFactory<DayleafDbContext> dbf, TimePr
     public async Task DeleteAsync(Guid id, string typedName)
     {
         await using var db = await dbf.CreateDbContextAsync();
-        var space = await db.Spaces.FirstOrDefaultAsync(s => s.Id == id) ?? throw new DayleafRuleException("That space no longer exists.");
+        var space = await db.Spaces.FirstOrDefaultAsync(s => s.Id == id) ?? throw new DayleafRuleException(Loc.T("That space no longer exists."));
         if (!string.Equals(space.Name.Trim(), (typedName ?? "").Trim(), StringComparison.Ordinal))
-            throw new DayleafRuleException($"Type “{space.Name}” exactly to delete this space.");
+            throw new DayleafRuleException(Loc.T("Type “{0}” exactly to delete this space.", space.Name));
         db.Spaces.Remove(space);
         await db.SaveChangesAsync();
     }

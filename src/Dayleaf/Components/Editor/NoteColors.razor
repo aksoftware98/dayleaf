@@ -1,10 +1,10 @@
 @if (IncludePaper)
 {
-    <ColorSwatches Items="WithPaper" Value="@Value" ValueChanged="ValueChanged" Label="Paper color" Background="Bg" />
+    <ColorSwatches Items="WithPaper" Value="@Value" ValueChanged="ValueChanged" Label="@L["Paper color"]" Background="Bg" />
 }
 else
 {
-    <ColorSwatches Items="Palette.Papers" Value="@Value" ValueChanged="ValueChanged" Label="Paper color" />
+    <ColorSwatches Items="Palette.Papers" Value="@Value" ValueChanged="ValueChanged" Label="@L["Paper color"]" />
 }
 
 @code {

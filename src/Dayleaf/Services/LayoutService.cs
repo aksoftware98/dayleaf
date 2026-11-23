@@ -45,7 +45,8 @@ public sealed class LayoutService
 
     public static double ContentTop(int sheet) => sheet == 0 ? FirstSheetContentTop : LaterSheetContentTop;
 
-    public Placement Place(IReadOnlyCollection<PageElement> existing, int sheetCount, double w, double h, (int Sheet, double X, double Y)? at = null)
+    /// <param name="rtl">Right-to-left pages (Arabic) align new elements to the right margin.</param>
+    public Placement Place(IReadOnlyCollection<PageElement> existing, int sheetCount, double w, double h, (int Sheet, double X, double Y)? at = null, bool rtl = false)
     {
         sheetCount = Math.Max(1, sheetCount);
         if (at is { } p)
@@ -55,6 +56,7 @@ public sealed class LayoutService
             return new Placement(sheet, cx, cy, w, h, false);
         }
 
+        var x = rtl ? Math.Max(SideMargin, SheetW - SideMargin - w) : SideMargin;
         var last = sheetCount - 1;
         var onLast = existing.Where(e => e.Sheet == last).ToList();
         var y = onLast.Count == 0
@@ -62,9 +64,9 @@ public sealed class LayoutService
             : Math.Max(ContentTop(last), onLast.Max(e => e.Y + e.H) + Gap);
 
         if (y + h <= BottomLimit)
-            return new Placement(last, SideMargin, Math.Round(y), w, h, false);
+            return new Placement(last, x, Math.Round(y), w, h, false);
 
-        return new Placement(last + 1, SideMargin, LaterSheetContentTop, w, h, true);
+        return new Placement(last + 1, x, LaterSheetContentTop, w, h, true);
     }
 
     /// <summary>Clamp so at least 24px of the element stays on the sheet.</summary>

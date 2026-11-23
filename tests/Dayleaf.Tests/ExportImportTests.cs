@@ -24,6 +24,7 @@ public class ExportImportRoundTripTests
         await h.Pages.SubmitSectionAsync(p1.Sections.Single().Id);
 
         var p2 = await h.Pages.GetOrCreatePageAsync(typing.Id, new DateOnly(2025, 6, 11), "They said yes this time.");
+        await h.Pages.UpdatePageMetaAsync(p2.Id, "قالوا نعم هذه المرة", "pastel", ["🎉 إنجاز"], null, "ar"); // language survives the trip
         await h.Pages.AddElementAsync(p2.Id, ElementKind.Emoji, new EmojiData { Char = "🎉" }, rotation: 14);
         await h.Pages.AddElementAsync(p2.Id, ElementKind.PageLink, new PageLinkData { Note = "see the farm" }, linkTarget: p1.Id, rotation: 0);
         await h.Pages.AddElementAsync(p2.Id, ElementKind.Photo, new PhotoData { Style = "round" }, photo.Id, rotation: 3); // same media → dedup
@@ -38,10 +39,10 @@ public class ExportImportRoundTripTests
         var pageDates = data.Spaces.SelectMany(s => s.Pages).ToDictionary(p => p.Id, p => p.Date);
         var shape = data.Spaces.OrderBy(s => s.Name).Select(s => new
         {
-            s.Name, s.Emoji, s.Color, s.Description, s.DefaultTheme, Cover = s.CoverMediaId is { } c ? sha[c] : null, s.CreatedAt,
+            s.Name, s.Emoji, s.Color, s.Description, s.DefaultTheme, s.DefaultLanguage, Cover = s.CoverMediaId is { } c ? sha[c] : null, s.CreatedAt,
             Pages = s.Pages.OrderBy(p => p.Date).Select(p => new
             {
-                p.Date, p.Title, p.Theme, p.Tags, p.SheetCount, p.CreatedAt,
+                p.Date, p.Title, p.Theme, p.Language, p.Tags, p.SheetCount, p.CreatedAt,
                 Sections = p.Sections.Select(x => new { x.Seq, x.Label, x.CreatedAt, x.SubmittedAt, Elements = p.Elements.Count(e => e.SectionId == x.Id) }),
                 Elements = p.Elements.OrderBy(e => e.Sheet).ThenBy(e => e.Z).Select(e => new
                 {

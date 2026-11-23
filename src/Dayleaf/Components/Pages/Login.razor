@@ -6,7 +6,7 @@
 @inject TimeProvider Clock
 @inject NavigationManager Nav
 
-<PageTitle>Sign in · Dayleaf</PageTitle>
+<PageTitle>@L["Sign in"] · Dayleaf</PageTitle>
 
 <main class="login-page">
     <form class="login-card" method="post" @formname="login" @onsubmit="SignInAsync">
@@ -15,20 +15,21 @@
             <span class="brand-mark"><Icon Name="book" Size="18" /></span>
             <span class="brand-name">Dayleaf</span>
         </div>
-        <h1>Welcome back.</h1>
-        <p class="muted">This notebook is private. Enter its password to open it.</p>
-        <label class="field">Password
+        <h1>@L["Welcome back."]</h1>
+        <p class="muted">@L["This notebook is private. Enter its password to open it."]</p>
+        <label class="field">@L["Password"]
             <input class="input" type="password" name="Password" autocomplete="current-password" required autofocus />
         </label>
         <label class="check" style="justify-content:flex-start">
-            <input type="checkbox" name="Remember" value="true" checked /> Keep me signed in on this device
+            <input type="checkbox" name="Remember" value="true" checked /> @L["Keep me signed in on this device"]
         </label>
         <input type="hidden" name="Return" value="@SafeReturn(ReturnUrl)" />
         @if (_error is not null)
         {
             <p class="error-text" role="alert">@_error</p>
         }
-        <button type="submit" class="btn btn-primary btn-block"><Icon Name="unlock" Size="16" />Open the notebook</button>
+        <button type="submit" class="btn btn-primary btn-block"><Icon Name="unlock" Size="16" />@L["Open the notebook"]</button>
+        <LanguageSwitch />
     </form>
 </main>
 
@@ -51,12 +52,12 @@
         var now = Clock.GetUtcNow();
         if (Gate.IsThrottled(now))
         {
-            _error = "Too many tries. Wait a few minutes and try again.";
+            _error = L["Too many tries. Wait a few minutes and try again."];
             return;
         }
         if (!await Gate.VerifyAsync(Password, now))
         {
-            _error = "That password isn't right.";
+            _error = L["That password isn't right."];
             return;
         }
         await Gate.SignInAsync(HttpContext, Remember);

@@ -1,14 +1,14 @@
-<div class="months" role="group" aria-label="Months">
+<div class="months" role="group" aria-label="@L["Months"]">
     @for (var i = 0; i < 12; i++)
     {
         var m = i + 1;
         var count = Counts.Length > i ? Counts[i] : 0;
         <button type="button" class="month" aria-pressed="@(Selected == m ? "true" : "false")" disabled="@(count == 0)"
-                aria-label="@($"{CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m)}: {count} page{(count == 1 ? "" : "s")}")"
-                title="@($"{count} page{(count == 1 ? "" : "s")}")"
+                aria-label="@($"{Dates.MonthName(m)}: {L.Count(count, Noun.Page)}")"
+                title="@L.Count(count, Noun.Page)"
                 @onclick="() => SelectedChanged.InvokeAsync(Selected == m ? null : m)">
             <span class="month-bar" style="height:@(BarHeight(count))px"></span>
-            <span>@CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(m)</span>
+            <span>@Dates.MonthName(m, abbreviated: true)</span>
         </button>
     }
 </div>

@@ -9,6 +9,8 @@ public sealed class Space
     public string Color { get; set; } = "forest";
     public string? Description { get; set; }
     public string DefaultTheme { get; set; } = Themes.Default;
+    /// <summary>"en" or "ar": the language new pages in this space are written in.</summary>
+    public string DefaultLanguage { get; set; } = "en";
     public Guid? CoverMediaId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
@@ -22,6 +24,8 @@ public sealed class Page
     public DateOnly Date { get; set; }
     public string Title { get; set; } = "";
     public string Theme { get; set; } = Themes.Default;
+    /// <summary>"en" or "ar". Sets the sheet direction (RTL for Arabic), header dates and labels.</summary>
+    public string Language { get; set; } = "en";
     public List<string> Tags { get; set; } = [];
     public int SheetCount { get; set; } = 1;
     public string? ShareToken { get; set; }

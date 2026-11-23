@@ -19,8 +19,8 @@
             }
         </span>
         <span>
-            <strong>@NameFor(e.Kind)</strong>
-            <small>@Item.SectionLabel section@(Item.Editable ? "" : " · locked")</small>
+            <strong>@L[NameFor(e.Kind)]</strong>
+            <small>@(Item.Editable ? L["{0} section", Item.SectionLabel] : L["{0} section · locked", Item.SectionLabel])</small>
         </span>
     </div>
 
@@ -28,7 +28,7 @@
     {
         <div class="lock-explain">
             <Icon Name="lock" />
-            <span>This belongs to the <strong>@Item.SectionLabel</strong> section, which is locked. Locked content stays exactly as it was written — you can always add something new in another section.</span>
+            <span>@L["This belongs to the “{0}” section, which is locked. Locked content stays exactly as it was written — you can always add something new in another section.", Item.SectionLabel]</span>
         </div>
     }
     else
@@ -36,170 +36,168 @@
         @switch (Item.Data)
         {
             case TextData t:
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnEditText.InvokeAsync()"><Icon Name="edit" Size="14" />Edit text (or double-click)</button>
-                <div class="field">Size
-                    <div class="seg">@foreach (var (v, l) in new[] { ("s", "S"), ("m", "M"), ("l", "L"), ("xl", "XL") }) { <button type="button" aria-pressed="@(P(t.Size == v))" @onclick="() => Set(t, x => x.Size = v)">@l</button> }</div>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnEditText.InvokeAsync()"><Icon Name="edit" Size="14" />@L["Edit text (or double-click)"]</button>
+                <div class="field">@L["Size"]
+                    <div class="seg">@foreach (var (v, l) in Sizes4) { <button type="button" aria-pressed="@(P(t.Size == v))" @onclick="() => Set(t, x => x.Size = v)">@l</button> }</div>
                 </div>
-                <div class="field">Font
-                    <div class="seg">@foreach (var (v, l) in Palette.TextFonts) { <button type="button" aria-pressed="@(P(t.Font == v))" @onclick="() => Set(t, x => x.Font = v)">@l</button> }</div>
+                <div class="field">@L["Font"]
+                    <div class="seg">@foreach (var (v, l) in Palette.TextFonts) { <button type="button" aria-pressed="@(P(t.Font == v))" @onclick="() => Set(t, x => x.Font = v)">@L["font|" + l]</button> }</div>
                 </div>
-                <div class="field">Ink
+                <div class="field">@L["Ink"]
                     <InkSwatches Value="@t.Color" Theme="Theme" ValueChanged="v => Set(t, x => x.Color = v)" />
                 </div>
-                <div class="field-row">
-                    <div class="field">Align
-                        <div class="seg">@foreach (var v in new[] { "left", "center", "right" }) { <button type="button" aria-pressed="@(P(t.Align == v))" @onclick="() => Set(t, x => x.Align = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
-                    </div>
+                <div class="field">@L["Align"]
+                    <div class="seg">@foreach (var (v, l) in Aligns) { <button type="button" aria-pressed="@(P(SameAlign(t.Align, v)))" @onclick="() => Set(t, x => x.Align = v)">@L[l]</button> }</div>
                 </div>
-                <div class="field">Highlight
+                <div class="field">@L["Highlight"]
                     <div class="seg">
-                        <button type="button" aria-pressed="@(P(t.Highlight is null))" @onclick="() => Set(t, x => x.Highlight = null)">None</button>
-                        <button type="button" aria-pressed="@(P(t.Highlight == "marker"))" @onclick="() => Set(t, x => x.Highlight = Marker)">Marker</button>
-                        <button type="button" aria-pressed="@(P(t.Highlight == "box"))" @onclick="() => Set(t, x => x.Highlight = Box)">Box</button>
+                        <button type="button" aria-pressed="@(P(t.Highlight is null))" @onclick="() => Set(t, x => x.Highlight = null)">@L["None"]</button>
+                        <button type="button" aria-pressed="@(P(t.Highlight == Marker))" @onclick="() => Set(t, x => x.Highlight = Marker)">@L["Marker"]</button>
+                        <button type="button" aria-pressed="@(P(t.Highlight == Box))" @onclick="() => Set(t, x => x.Highlight = Box)">@L["Box"]</button>
                     </div>
                 </div>
                 break;
 
             case HeadingData h:
-                <label class="field">Text<input class="input" value="@h.Text" @onchange="v => Set(h, x => x.Text = StrOrEmpty(v))" /></label>
-                <div class="field">Size
-                    <div class="seg">@foreach (var (v, l) in new[] { ("m", "M"), ("l", "L"), ("xl", "XL") }) { <button type="button" aria-pressed="@(P(h.Size == v))" @onclick="() => Set(h, x => x.Size = v)">@l</button> }</div>
+                <label class="field">@L["Text"]<input class="input" dir="auto" value="@h.Text" @onchange="v => Set(h, x => x.Text = StrOrEmpty(v))" /></label>
+                <div class="field">@L["Size"]
+                    <div class="seg">@foreach (var (v, l) in Sizes3) { <button type="button" aria-pressed="@(P(h.Size == v))" @onclick="() => Set(h, x => x.Size = v)">@l</button> }</div>
                 </div>
-                <div class="field">Ink<InkSwatches Value="@h.Color" Theme="Theme" ValueChanged="v => Set(h, x => x.Color = v)" /></div>
-                <div class="field">Align
-                    <div class="seg">@foreach (var v in new[] { "left", "center", "right" }) { <button type="button" aria-pressed="@(P(h.Align == v))" @onclick="() => Set(h, x => x.Align = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                <div class="field">@L["Ink"]<InkSwatches Value="@h.Color" Theme="Theme" ValueChanged="v => Set(h, x => x.Color = v)" /></div>
+                <div class="field">@L["Align"]
+                    <div class="seg">@foreach (var (v, l) in Aligns) { <button type="button" aria-pressed="@(P(SameAlign(h.Align, v)))" @onclick="() => Set(h, x => x.Align = v)">@L[l]</button> }</div>
                 </div>
                 break;
 
             case PhotoData p:
-                <div class="field">Sticker style
-                    <div class="seg">@foreach (var (v, l) in PhotoStyles) { <button type="button" aria-pressed="@(P(p.Style == v))" @onclick="() => SetPhotoStyle(p, v)">@l</button> }</div>
+                <div class="field">@L["Sticker style"]
+                    <div class="seg">@foreach (var (v, l) in PhotoStyles) { <button type="button" aria-pressed="@(P(p.Style == v))" @onclick="() => SetPhotoStyle(p, v)">@L[l]</button> }</div>
                 </div>
-                <div class="field">Filter
-                    <div class="seg">@foreach (var v in Palette.PhotoFilters) { <button type="button" aria-pressed="@(P(p.Filter == v))" @onclick="() => Set(p, x => x.Filter = v)">@(v == "none" ? "Off" : v[..1].ToUpperInvariant() + v[1..])</button> }</div>
+                <div class="field">@L["Filter"]
+                    <div class="seg">@foreach (var v in Palette.PhotoFilters) { <button type="button" aria-pressed="@(P(p.Filter == v))" @onclick="() => Set(p, x => x.Filter = v)">@(v == "none" ? L["Off"] : L["filter|" + Palette.Title(v)])</button> }</div>
                 </div>
                 <label class="field">
-                    <span class="slider-label">Crop zoom<span>@p.Zoom.ToString("0.0", CultureInfo.InvariantCulture)×</span></span>
+                    <span class="slider-label">@L["Crop zoom"]<span>@p.Zoom.ToString("0.0", CultureInfo.InvariantCulture)×</span></span>
                     <input class="range" type="range" min="1" max="4" step="0.1" value="@p.Zoom.ToString(CultureInfo.InvariantCulture)" @onchange="v => Set(p, x => x.Zoom = Dbl(v, 1))" />
                 </label>
                 <div class="field-row">
                     <label class="field">
-                        <span class="slider-label">Focus ←→<span>@((int)p.FocusX)%</span></span>
+                        <span class="slider-label">@L["Focus ←→"]<span>@((int)p.FocusX)%</span></span>
                         <input class="range" type="range" min="0" max="100" value="@((int)p.FocusX)" @onchange="v => Set(p, x => x.FocusX = Dbl(v, 50))" />
                     </label>
                     <label class="field">
-                        <span class="slider-label">Focus ↑↓<span>@((int)p.FocusY)%</span></span>
+                        <span class="slider-label">@L["Focus ↑↓"]<span>@((int)p.FocusY)%</span></span>
                         <input class="range" type="range" min="0" max="100" value="@((int)p.FocusY)" @onchange="v => Set(p, x => x.FocusY = Dbl(v, 50))" />
                     </label>
                 </div>
-                <label class="field">Caption @if (p.Style != "polaroid") { <span class="hint">shown on Polaroid</span> }
-                    <input class="input hand" value="@p.Caption" maxlength="200" placeholder="what's happening here?" @onchange="v => Set(p, x => x.Caption = Str(v))" />
+                <label class="field">@L["Caption"] @if (p.Style != "polaroid") { <span class="hint">@L["shown on Polaroid"]</span> }
+                    <input class="input hand" dir="auto" value="@p.Caption" maxlength="200" placeholder="@L["what's happening here?"]" @onchange="v => Set(p, x => x.Caption = Str(v))" />
                 </label>
-                <label class="field">Description for screen readers
-                    <input class="input" value="@p.Alt" maxlength="300" placeholder="e.g. Our red tractor between the trees" @onchange="v => Set(p, x => x.Alt = Str(v))" />
+                <label class="field">@L["Description for screen readers"]
+                    <input class="input" dir="auto" value="@p.Alt" maxlength="300" placeholder="@L["e.g. Our red tractor between the trees"]" @onchange="v => Set(p, x => x.Alt = Str(v))" />
                 </label>
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnReplacePhoto.InvokeAsync()"><Icon Name="image-replace" Size="14" />Replace photo</button>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnReplacePhoto.InvokeAsync()"><Icon Name="image-replace" Size="14" />@L["Replace photo"]</button>
                 break;
 
             case EmojiData em:
-                <div class="field">Sticker
+                <div class="field">@L["Sticker"]
                     <div class="emoji-pick">
                         @foreach (var s in EmojiCatalog.All.Take(60))
                         {
-                            <button type="button" aria-label="@s.Name" aria-pressed="@(P(em.Char == s.Char))" @onclick="() => Set(em, x => x.Char = s.Char)">@s.Char</button>
+                            <button type="button" aria-label="@s.LocalName" title="@s.LocalName" aria-pressed="@(P(em.Char == s.Char))" @onclick="() => Set(em, x => x.Char = s.Char)">@s.Char</button>
                         }
                     </div>
                 </div>
                 break;
 
             case NoteData n:
-                <label class="field">Title<input class="input hand" value="@n.Title" maxlength="120" @onchange="v => Set(n, x => x.Title = Str(v))" /></label>
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnEditText.InvokeAsync()"><Icon Name="edit" Size="14" />Edit note text</button>
-                <div class="field">Paper<NoteColors Value="@n.Color" ValueChanged="v => Set(n, x => x.Color = v)" /></div>
+                <label class="field">@L["Title"]<input class="input hand" dir="auto" value="@n.Title" maxlength="120" @onchange="v => Set(n, x => x.Title = Str(v))" /></label>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnEditText.InvokeAsync()"><Icon Name="edit" Size="14" />@L["Edit note text"]</button>
+                <div class="field">@L["Paper"]<NoteColors Value="@n.Color" ValueChanged="v => Set(n, x => x.Color = v)" /></div>
                 break;
 
             case ChecklistData c:
-                <label class="field">Title<input class="input hand" value="@c.Title" maxlength="120" @onchange="v => Set(c, x => x.Title = Str(v))" /></label>
-                <div class="field">Items
+                <label class="field">@L["Title"]<input class="input hand" dir="auto" value="@c.Title" maxlength="120" @onchange="v => Set(c, x => x.Title = Str(v))" /></label>
+                <div class="field">@L["Items"]
                     @for (var i = 0; i < c.Items.Count; i++)
                     {
                         var idx = i;
                         <div style="display:flex;gap:6px;align-items:center">
-                            <input type="checkbox" checked="@c.Items[idx].Done" aria-label="Done" style="width:18px;height:18px;accent-color:var(--forest)" @onchange="v => Set(c, x => x.Items[idx].Done = v.Value is true)" />
-                            <input class="input" style="min-height:38px" value="@c.Items[idx].Text" maxlength="200" aria-label="@($"Item {idx + 1}")" @onchange="v => Set(c, x => x.Items[idx].Text = StrOrEmpty(v))" />
-                            <button type="button" class="icon-btn" style="width:38px;height:38px" aria-label="Remove item" @onclick="() => Set(c, x => x.Items.RemoveAt(idx))"><Icon Name="close" Size="14" /></button>
+                            <input type="checkbox" checked="@c.Items[idx].Done" aria-label="@L["Done"]" style="width:18px;height:18px;accent-color:var(--forest)" @onchange="v => Set(c, x => x.Items[idx].Done = v.Value is true)" />
+                            <input class="input" dir="auto" style="min-height:38px" value="@c.Items[idx].Text" maxlength="200" aria-label="@L["Item {0}", idx + 1]" @onchange="v => Set(c, x => x.Items[idx].Text = StrOrEmpty(v))" />
+                            <button type="button" class="icon-btn" style="width:38px;height:38px" aria-label="@L["Remove item"]" @onclick="() => Set(c, x => x.Items.RemoveAt(idx))"><Icon Name="close" Size="14" /></button>
                         </div>
                     }
                     <form style="display:flex;gap:6px" @onsubmit="() => AddItem(c)">
-                        <input class="input" style="min-height:38px" placeholder="Add an item…" aria-label="New item" @bind="_newItem" @bind:event="oninput" maxlength="200" />
-                        <button type="submit" class="btn btn-secondary btn-sm" disabled="@string.IsNullOrWhiteSpace(_newItem)">Add</button>
+                        <input class="input" dir="auto" style="min-height:38px" placeholder="@L["Add an item…"]" aria-label="@L["New item"]" @bind="_newItem" @bind:event="oninput" maxlength="200" />
+                        <button type="submit" class="btn btn-secondary btn-sm" disabled="@string.IsNullOrWhiteSpace(_newItem)">@L["Add"]</button>
                     </form>
                 </div>
-                <div class="field">Paper<NoteColors Value="@c.Color" ValueChanged="v => Set(c, x => x.Color = v)" IncludePaper="true" /></div>
+                <div class="field">@L["Paper"]<NoteColors Value="@c.Color" ValueChanged="v => Set(c, x => x.Color = v)" IncludePaper="true" /></div>
                 break;
 
             case PageLinkData pl:
-                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnPickLink.InvokeAsync()"><Icon Name="link" Size="14" />@(e.LinkTargetPageId is null ? "Choose a page" : "Link a different page")</button>
-                <label class="field">Note<input class="input hand" value="@pl.Note" maxlength="200" placeholder="why this page matters" @onchange="v => Set(pl, x => x.Note = Str(v))" /></label>
-                <span class="hint">Make it shorter than 100px for a compact “← earlier” link.</span>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnPickLink.InvokeAsync()"><Icon Name="link" Size="14" />@(e.LinkTargetPageId is null ? L["Choose a page"] : L["Link a different page"])</button>
+                <label class="field">@L["Note"]<input class="input hand" dir="auto" value="@pl.Note" maxlength="200" placeholder="@L["why this page matters"]" @onchange="v => Set(pl, x => x.Note = Str(v))" /></label>
+                <span class="hint">@L["Make it shorter than 100px for a compact “← earlier” link."]</span>
                 break;
 
             case QuoteData q:
-                <label class="field">Label<input class="input" value="@q.Label" maxlength="60" @onchange="v => Set(q, x => x.Label = StrOrEmpty(v))" /></label>
-                <label class="field">Quote<textarea class="textarea" maxlength="500" @onchange="v => Set(q, x => x.Text = StrOrEmpty(v))">@q.Text</textarea></label>
+                <label class="field">@L["Label"]<input class="input" dir="auto" value="@q.Label" maxlength="60" @onchange="v => Set(q, x => x.Label = StrOrEmpty(v))" /></label>
+                <label class="field">@L["Quote"]<textarea class="textarea" dir="auto" maxlength="500" @onchange="v => Set(q, x => x.Text = StrOrEmpty(v))">@q.Text</textarea></label>
                 break;
 
             case LabelData lb:
-                <label class="field">Text<input class="input hand" value="@lb.Text" maxlength="200" @onchange="v => Set(lb, x => x.Text = StrOrEmpty(v))" /></label>
-                <div class="field">Size
-                    <div class="seg">@foreach (var (v, l) in new[] { ("s", "S"), ("m", "M"), ("l", "L") }) { <button type="button" aria-pressed="@(P(lb.Size == v))" @onclick="() => Set(lb, x => x.Size = v)">@l</button> }</div>
+                <label class="field">@L["Text"]<input class="input hand" dir="auto" value="@lb.Text" maxlength="200" @onchange="v => Set(lb, x => x.Text = StrOrEmpty(v))" /></label>
+                <div class="field">@L["Size"]
+                    <div class="seg">@foreach (var (v, l) in Sizes3s) { <button type="button" aria-pressed="@(P(lb.Size == v))" @onclick="() => Set(lb, x => x.Size = v)">@l</button> }</div>
                 </div>
-                <div class="field">Ink<InkSwatches Value="@lb.Color" Theme="Theme" ValueChanged="v => Set(lb, x => x.Color = v)" /></div>
+                <div class="field">@L["Ink"]<InkSwatches Value="@lb.Color" Theme="Theme" ValueChanged="v => Set(lb, x => x.Color = v)" /></div>
                 break;
 
             case DividerData d:
-                <div class="field">Style
-                    <div class="seg">@foreach (var v in Palette.DividerStyles) { <button type="button" aria-pressed="@(P(d.Style == v))" @onclick="() => Set(d, x => x.Style = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                <div class="field">@L["Style"]
+                    <div class="seg">@foreach (var v in Palette.DividerStyles) { <button type="button" aria-pressed="@(P(d.Style == v))" @onclick="() => Set(d, x => x.Style = v)">@L[Palette.Title(v)]</button> }</div>
                 </div>
                 break;
 
             case TapeData tp:
-                <div class="field">Color
-                    <ColorSwatches Items="Palette.Tapes" Value="@tp.Color" ValueChanged="v => Set(tp, x => x.Color = v)" Label="Tape color" />
+                <div class="field">@L["Color"]
+                    <ColorSwatches Items="Palette.Tapes" Value="@tp.Color" ValueChanged="v => Set(tp, x => x.Color = v)" Label="@L["Tape color"]" />
                 </div>
-                <div class="field">Pattern
-                    <div class="seg">@foreach (var v in Palette.TapePatterns) { <button type="button" aria-pressed="@(P(tp.Pattern == v))" @onclick="() => Set(tp, x => x.Pattern = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                <div class="field">@L["Pattern"]
+                    <div class="seg">@foreach (var v in Palette.TapePatterns) { <button type="button" aria-pressed="@(P(tp.Pattern == v))" @onclick="() => Set(tp, x => x.Pattern = v)">@L[Palette.Title(v)]</button> }</div>
                 </div>
                 break;
 
             case ShapeData sh:
-                <div class="field">Shape
-                    <div class="seg">@foreach (var v in Palette.Shapes) { <button type="button" aria-pressed="@(P(sh.Shape == v))" @onclick="() => Set(sh, x => x.Shape = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                <div class="field">@L["Shape"]
+                    <div class="seg">@foreach (var v in Palette.Shapes) { <button type="button" aria-pressed="@(P(sh.Shape == v))" @onclick="() => Set(sh, x => x.Shape = v)">@L[Palette.Title(v)]</button> }</div>
                 </div>
-                <div class="field">Color
+                <div class="field">@L["Color"]
                     <InkSwatches Value="@sh.Color" Theme="Theme" ForShapes="true" ValueChanged="v => Set(sh, x => x.Color = v)" />
                 </div>
                 <label class="field">
-                    <span class="slider-label">Opacity<span>@((int)(sh.Opacity * 100))%</span></span>
+                    <span class="slider-label">@L["Opacity"]<span>@((int)(sh.Opacity * 100))%</span></span>
                     <input class="range" type="range" min="5" max="100" value="@((int)(sh.Opacity * 100))" @onchange="v => Set(sh, x => x.Opacity = Dbl(v, 35) / 100)" />
                 </label>
                 break;
         }
 
         <label class="field">
-            <span class="slider-label">Size<span>@Math.Round(e.W) × @Math.Round(e.H) px</span></span>
+            <span class="slider-label">@L["Size"]<span dir="ltr">@Math.Round(e.W) × @Math.Round(e.H) px</span></span>
             <input class="range" type="range" min="16" max="760" value="@((int)e.W)" @oninput="v => Resize(v, false)" @onchange="v => Resize(v, true)" />
         </label>
         <label class="field">
-            <span class="slider-label">Tilt<span>@Math.Round(e.Rotation)°</span></span>
-            <input class="range" type="range" min="-20" max="20" step="0.5" value="@Math.Clamp(e.Rotation, -20, 20).ToString(CultureInfo.InvariantCulture)" @oninput="v => Tilt(v, false)" @onchange="v => Tilt(v, true)" />
+            <span class="slider-label">@L["Tilt"]<span dir="ltr">@Math.Round(e.Rotation)°</span></span>
+            <input class="range" type="range" min="-20" max="20" step="0.5" dir="ltr" value="@Math.Clamp(e.Rotation, -20, 20).ToString(CultureInfo.InvariantCulture)" @oninput="v => Tilt(v, false)" @onchange="v => Tilt(v, true)" />
         </label>
 
         <div class="insp-actions">
-            <button type="button" aria-label="Bring to front" title="Bring to front" @onclick="() => OnAction.InvokeAsync(ElementAction.Front)"><Icon Name="front" /></button>
-            <button type="button" aria-label="Send to back" title="Send to back" @onclick="() => OnAction.InvokeAsync(ElementAction.Back)"><Icon Name="back-layer" /></button>
-            <button type="button" aria-label="Duplicate" title="Duplicate (Ctrl+D)" @onclick="() => OnAction.InvokeAsync(ElementAction.Duplicate)"><Icon Name="copy" /></button>
-            <button type="button" class="danger" aria-label="Delete" title="Delete (Del)" @onclick="() => OnAction.InvokeAsync(ElementAction.Delete)"><Icon Name="trash" /></button>
+            <button type="button" aria-label="@L["Bring to front"]" title="@L["Bring to front"]" @onclick="() => OnAction.InvokeAsync(ElementAction.Front)"><Icon Name="front" /></button>
+            <button type="button" aria-label="@L["Send to back"]" title="@L["Send to back"]" @onclick="() => OnAction.InvokeAsync(ElementAction.Back)"><Icon Name="back-layer" /></button>
+            <button type="button" aria-label="@L["Duplicate"]" title="@L["Duplicate (Ctrl+D)"]" @onclick="() => OnAction.InvokeAsync(ElementAction.Duplicate)"><Icon Name="copy" /></button>
+            <button type="button" class="danger" aria-label="@L["Delete"]" title="@L["Delete (Del)"]" @onclick="() => OnAction.InvokeAsync(ElementAction.Delete)"><Icon Name="trash" /></button>
         </div>
     }
 </div>
@@ -217,6 +215,17 @@
     private string? _newItem;
 
     private static readonly (string, string)[] PhotoStyles = [("plain", "Plain"), ("sticker", "Die-cut"), ("polaroid", "Polaroid"), ("taped", "Taped"), ("round", "Round")];
+    private static readonly (string, string)[] Sizes4 = [("s", "S"), ("m", "M"), ("l", "L"), ("xl", "XL")];
+    private static readonly (string, string)[] Sizes3 = [("m", "M"), ("l", "L"), ("xl", "XL")];
+    private static readonly (string, string)[] Sizes3s = [("s", "S"), ("m", "M"), ("l", "L")];
+    /// <summary>Logical alignment: "start" is left in English text and right in Arabic text.</summary>
+    private static readonly (string, string)[] Aligns = [("start", "Start"), ("center", "Center"), ("end", "End")];
+
+    private static bool SameAlign(string current, string option) => (current, option) switch
+    {
+        ("left", "start") or ("right", "end") => true, // pages made before alignment became logical
+        _ => current == option,
+    };
 
     private static string P(bool b) => b ? "true" : "false";
     private static string? Str(ChangeEventArgs v) => v.Value?.ToString();
@@ -277,6 +286,7 @@
         ElementKind.Label => "label", ElementKind.Divider => "divider", ElementKind.Tape => "tape", ElementKind.Shape => "shape", _ => "file",
     };
 
+    /// <summary>English names; callers translate with L[…].</summary>
     public static string NameFor(ElementKind k) => k switch
     {
         ElementKind.Text => "Text", ElementKind.Heading => "Heading", ElementKind.Photo => "Photo sticker", ElementKind.Emoji => "Sticker",

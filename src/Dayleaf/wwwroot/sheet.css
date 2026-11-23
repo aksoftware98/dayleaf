@@ -281,6 +281,8 @@
 .tx-align-left { text-align: left; }
 .tx-align-center { text-align: center; }
 .tx-align-right { text-align: right; }
+.tx-align-start { text-align: start; }
+.tx-align-end { text-align: end; }
 .tx-hl-marker { background: linear-gradient(transparent 55%, color-mix(in srgb, var(--accent2) 38%, transparent) 55%); }
 .tx-hl-box { padding: 14px 16px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 9%, transparent); }
 
@@ -620,3 +622,21 @@
     --chip2-bg: #F7EBC8; --chip2-ink: #6E4F07; --chip3-bg: #fff; --chip3-ink: #0F2433; --chip3-line: #C9DCE3; --photo-border: #FFFFFF; }
   .theme-ocean .sheet-deco { background: radial-gradient(circle at 66% 10%, rgba(242, 193, 78, .7) 0 34px, transparent 35px); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Right-to-left (Arabic) pages: the template header mirrors; element positions don't
+   (they are where the writer put them). Decorations flip so margins sit on the right.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* Arabic letters join: never letter-space them, and never fake italics (here too, for exports and PDFs). */
+.sheet:lang(ar), .sheet :lang(ar) { letter-spacing: 0 !important; font-synthesis-style: none; }
+.sheet[dir="rtl"] .sheet-deco { transform: scaleX(-1); }
+.sheet[dir="rtl"] .sh-day { left: auto; right: 50px; }
+.sheet[dir="rtl"] .sh-month { left: auto; right: 222px; }
+.sheet[dir="rtl"] .sh-tags { right: auto; left: 56px; align-items: flex-start; }
+.sheet[dir="rtl"] .sh-title { left: auto; right: 56px; line-height: 1.2; }
+.sheet[dir="rtl"].theme-pastel .sh-month { right: 56px; }
+.sheet[dir="rtl"] .sh-month-name { font-size: 36px; }
+.sheet[dir="rtl"] .sh-run, .sheet[dir="rtl"] .q-label, .sheet[dir="rtl"] .plink-kicker { font-size: 12px; }
+.sheet[dir="rtl"] .sh-yw { font-size: 14px; }
+/* Arabic needs a little more line height than Latin text. */
+.sheet :lang(ar) .el-text, .sheet:lang(ar) .el-text, .sheet:lang(ar) .note-body { line-height: 1.8; }

@@ -15,39 +15,39 @@
 
 @if (_notFound)
 {
-    <div class="page-wrap"><EmptyState IconName="search" Title="That page isn't here" Text="The space or date in the address doesn't exist."><a class="btn btn-primary" href="/">Back to spaces</a></EmptyState></div>
+    <div class="page-wrap"><EmptyState IconName="search" Title="@L["That page isn't here"]" Text="@L["The space or date in the address doesn't exist."]"><a class="btn btn-primary" href="/">@L["Back to spaces"]</a></EmptyState></div>
 }
 else if (_space is not null)
 {
     <div class="ed">
         <header class="ed-top">
             <div class="ed-top-left">
-                <a class="icon-btn" href="@($"/s/{_space.Slug}?d={_date:yyyy-MM-dd}")" aria-label="@($"Back to {_space.Name}")"><Icon Name="back" /></a>
+                <a class="icon-btn" href="@($"/s/{_space.Slug}?d={_date:yyyy-MM-dd}")" aria-label="@L["Back to {0}", _space.Name]"><Icon Name="back" /></a>
                 <div class="ed-title">
-                    <small>@_space.Emoji @_space.Name@(_model is null ? "" : $" · Page {_model.PageNumber}")</small>
-                    <strong>@(_model is null ? "New page" : string.IsNullOrWhiteSpace(_model.Title) ? "Untitled page" : _model.Title)</strong>
+                    <small>@_space.Emoji <bdi>@_space.Name</bdi>@(_model is null ? "" : " · " + L["Page {0}", _model.PageNumber])</small>
+                    <strong dir="auto">@(_model is null ? L["New page"] : string.IsNullOrWhiteSpace(_model.Title) ? L["Untitled page"] : _model.Title)</strong>
                 </div>
-                <label class="date-pill" title="@(MetaEditable ? "Change the date" : "The date is locked")">
-                    <Icon Name="calendar" Size="16" />@_date.ToString("ddd, MMM d, yyyy", CultureInfo.InvariantCulture)<Icon Name="down" Size="14" />
-                    <input type="date" value="@_date.ToString("yyyy-MM-dd")" aria-label="Page date" @onchange="OnDateChanged" />
+                <label class="date-pill" title="@(MetaEditable ? L["Change the date"] : L["The date is locked"])">
+                    <Icon Name="calendar" Size="16" />@L.Date(_date, DateStyle.WeekdayShort)<Icon Name="down" Size="14" />
+                    <input type="date" value="@_date.ToString("yyyy-MM-dd")" aria-label="@L["Page date"]" @onchange="OnDateChanged" />
                 </label>
             </div>
             <div class="toolbar">
                 @if (_model is not null)
                 {
                     <span class="save-state @_saveClass" role="status">
-                        @if (_saveClass == "saving") { <Icon Name="clock" Size="14" /><span>Saving…</span> }
-                        else if (_saveClass == "err") { <Icon Name="close" Size="14" /><span>Not saved</span> }
-                        else if (CanEdit) { <Icon Name="tick" Size="14" /><span>Saved</span> }
-                        else { <Icon Name="lock" Size="14" /><span>Locked</span> }
+                        @if (_saveClass == "saving") { <Icon Name="clock" Size="14" /><span>@L["Saving…"]</span> }
+                        else if (_saveClass == "err") { <Icon Name="close" Size="14" /><span>@L["Not saved"]</span> }
+                        else if (CanEdit) { <Icon Name="tick" Size="14" /><span>@L["Saved"]</span> }
+                        else { <Icon Name="lock" Size="14" /><span>@L["Locked"]</span> }
                     </span>
                     @if (CanEdit)
                     {
-                        <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled="@(_undo.Count == 0)" @onclick="UndoAsync"><Icon Name="undo" /></button>
+                        <button type="button" class="icon-btn" aria-label="@L["Undo"]" title="@L["Undo (Ctrl+Z)"]" disabled="@(_undo.Count == 0)" @onclick="UndoAsync"><Icon Name="undo" /></button>
                     }
-                    <a class="btn btn-secondary" href="@($"/export/page/{_model.PageId}.pdf")" download title="Exact A4, one page per sheet"><Icon Name="download" Size="16" />PDF</a>
-                    <a class="icon-btn" href="@($"/print/page/{_model.PageId}")" target="_blank" rel="noopener" aria-label="Print" title="Print"><Icon Name="print" /></a>
-                    <button type="button" class="btn btn-primary" @onclick="() => _share = true"><Icon Name="link" Size="16" />Share</button>
+                    <a class="btn btn-secondary" href="@($"/export/page/{_model.PageId}.pdf")" download title="@L["Exact A4, one page per sheet"]"><Icon Name="download" Size="16" />PDF</a>
+                    <a class="icon-btn" href="@($"/print/page/{_model.PageId}")" target="_blank" rel="noopener" aria-label="@L["Print"]" title="@L["Print"]"><Icon Name="print" /></a>
+                    <button type="button" class="btn btn-primary" @onclick="() => _share = true"><Icon Name="link" Size="16" />@L["Share"]</button>
                 }
             </div>
         </header>
@@ -55,11 +55,11 @@ else if (_space is not null)
         @if (_page is null)
         {
             <div class="page-wrap">
-                <EmptyState IconName="edit" Title="@($"No page for {_date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)} yet")"
-                            Text="Every date can have one page in this space. Backfilling is welcome — write about a day long gone.">
+                <EmptyState IconName="edit" Title="@L["No page for {0} yet", L.Date(_date, DateStyle.LongNoWeekday)]"
+                            Text="@L["Every date can have one page in this space. Backfilling is welcome — write about a day long gone."]">
                     <div class="empty-actions">
-                        <button type="button" class="btn btn-primary" @onclick="CreateAsync"><Icon Name="plus" Size="16" />Create this page</button>
-                        <a class="btn btn-secondary" href="@($"/s/{_space.Slug}")">Back to the timeline</a>
+                        <button type="button" class="btn btn-primary" @onclick="CreateAsync"><Icon Name="plus" Size="16" />@L["Create this page"]</button>
+                        <a class="btn btn-secondary" href="@($"/s/{_space.Slug}")">@L["Back to the timeline"]</a>
                     </div>
                 </EmptyState>
             </div>
@@ -69,30 +69,30 @@ else if (_space is not null)
             <div class="ed-body">
                 @if (CanEdit)
                 {
-                    <nav class="rail" aria-label="Insert">
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Text)"><Icon Name="text" Size="22" />Text</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Heading)"><Icon Name="heading" Size="22" />Heading</button>
-                        <button type="button" class="rail-btn" @onclick="PickPhotosAsync"><Icon Name="photo" Size="22" />Photo</button>
-                        <button type="button" class="rail-btn" @onclick="ShowStickers"><Icon Name="emoji" Size="22" />Sticker</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Note)"><Icon Name="note" Size="22" />Note</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Checklist)"><Icon Name="check" Size="22" />Checklist</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Quote)"><Icon Name="quote" Size="22" />Quote</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Label)"><Icon Name="label" Size="22" />Label</button>
-                        <button type="button" class="rail-btn" @onclick="() => { _linkForSelected = false; _pickLink = true; }"><Icon Name="link" Size="22" />Link page</button>
+                    <nav class="rail" aria-label="@L["Insert"]">
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Text)"><Icon Name="text" Size="22" />@L["Text"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Heading)"><Icon Name="heading" Size="22" />@L["Heading"]</button>
+                        <button type="button" class="rail-btn" @onclick="PickPhotosAsync"><Icon Name="photo" Size="22" />@L["Photo"]</button>
+                        <button type="button" class="rail-btn" @onclick="ShowStickers"><Icon Name="emoji" Size="22" />@L["Sticker"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Note)"><Icon Name="note" Size="22" />@L["Note"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Checklist)"><Icon Name="check" Size="22" />@L["Checklist"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Quote)"><Icon Name="quote" Size="22" />@L["Quote"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Label)"><Icon Name="label" Size="22" />@L["Label"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => { _linkForSelected = false; _pickLink = true; }"><Icon Name="link" Size="22" />@L["Link page"]</button>
                         <div class="rail-sep"></div>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Tape)"><Icon Name="tape" Size="22" />Tape</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Shape)"><Icon Name="shape" Size="22" />Shape</button>
-                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Divider)"><Icon Name="divider" Size="22" />Divider</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Tape)"><Icon Name="tape" Size="22" />@L["Tape"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Shape)"><Icon Name="shape" Size="22" />@L["Shape"]</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Divider)"><Icon Name="divider" Size="22" />@L["Divider"]</button>
                     </nav>
                 }
 
-                <section class="canvas-col" aria-label="Page canvas" @ref="_canvasCol">
+                <section class="canvas-col" aria-label="@L["Page canvas"]" @ref="_canvasCol">
                     @if (Selected is null && !CanEdit)
                     {
                         <div class="view-cta">
-                            <strong style="display:flex;gap:8px;align-items:center"><Icon Name="lock" Size="16" />This page is locked</strong>
-                            <p>What's written stays written. You can't change it, but you can always add to it.</p>
-                            <button type="button" class="btn btn-primary btn-sm" @onclick="AddSectionAsync"><Icon Name="plus" Size="14" />Add a section</button>
+                            <strong style="display:flex;gap:8px;align-items:center"><Icon Name="lock" Size="16" />@L["This page is locked"]</strong>
+                            <p>@L["What's written stays written. You can't change it, but you can always add to it."]</p>
+                            <button type="button" class="btn btn-primary btn-sm" @onclick="AddSectionAsync"><Icon Name="plus" Size="14" />@L["Add a section"]</button>
                         </div>
                     }
                     <div class="floatbar-slot">
@@ -100,34 +100,34 @@ else if (_space is not null)
                     {
                         @if (!sel.Editable)
                         {
-                            <div class="floatbar lockbar" role="toolbar" aria-label="Locked element">
-                                <span class="fb-label" style="display:flex;gap:6px;align-items:center"><Icon Name="lock" Size="14" />Locked · @sel.SectionLabel section</span>
+                            <div class="floatbar lockbar" role="toolbar" aria-label="@L["Locked element"]">
+                                <span class="fb-label" style="display:flex;gap:6px;align-items:center"><Icon Name="lock" Size="14" />@L["Locked · {0} section", sel.SectionLabel]</span>
                             </div>
                         }
                         else if (sel.Data is PhotoData ph)
                         {
-                            <div class="floatbar" role="toolbar" aria-label="Photo sticker">
-                                <span class="fb-label">Photo sticker</span>
+                            <div class="floatbar" role="toolbar" aria-label="@L["Photo sticker"]">
+                                <span class="fb-label">@L["Photo sticker"]</span>
                                 @foreach (var (v, l) in new[] { ("sticker", "Die-cut"), ("polaroid", "Polaroid"), ("taped", "Taped"), ("round", "Round"), ("plain", "Plain") })
                                 {
-                                    <button type="button" aria-pressed="@(ph.Style == v ? "true" : "false")" @onclick="() => SetPhotoStyleAsync(sel, v)">@l</button>
+                                    <button type="button" aria-pressed="@(ph.Style == v ? "true" : "false")" @onclick="() => SetPhotoStyleAsync(sel, v)">@L[l]</button>
                                 }
                                 <span class="sep"></span>
-                                <button type="button" class="fb-icon" aria-label="Rotate 15°" title="Rotate 15°" @onclick="() => RotateByAsync(sel, 15)"><Icon Name="rotate" Size="16" /></button>
-                                <button type="button" class="fb-icon" aria-label="Crop zoom" title="Crop: zoom in" @onclick="() => CropAsync(sel, ph)"><Icon Name="crop" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="@L["Rotate 15°"]" title="@L["Rotate 15°"]" @onclick="() => RotateByAsync(sel, 15)"><Icon Name="rotate" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="@L["Crop zoom"]" title="@L["Crop: zoom in"]" @onclick="() => CropAsync(sel, ph)"><Icon Name="crop" Size="16" /></button>
                                 <button type="button" class="fb-icon" aria-label="Bring to front" title="Bring to front" @onclick="() => ActionAsync(ElementAction.Front)"><Icon Name="front" Size="16" /></button>
                                 <button type="button" class="fb-icon fb-danger" aria-label="Delete" title="Delete" @onclick="() => ActionAsync(ElementAction.Delete)"><Icon Name="trash" Size="16" /></button>
                             </div>
                         }
                         else
                         {
-                            <div class="floatbar" role="toolbar" aria-label="@ElementInspector.NameFor(sel.Element.Kind)">
-                                <span class="fb-label">@ElementInspector.NameFor(sel.Element.Kind)</span>
+                            <div class="floatbar" role="toolbar" aria-label="@L[ElementInspector.NameFor(sel.Element.Kind)]">
+                                <span class="fb-label">@L[ElementInspector.NameFor(sel.Element.Kind)]</span>
                                 @if (sel.Data is TextData or NoteData or QuoteData or LabelData or HeadingData or ChecklistData)
                                 {
-                                    <button type="button" @onclick="() => BeginEditAsync(sel.Element.Id)"><Icon Name="edit" Size="14" />Edit</button>
+                                    <button type="button" @onclick="() => BeginEditAsync(sel.Element.Id)"><Icon Name="edit" Size="14" />@L["Edit"]</button>
                                 }
-                                <button type="button" class="fb-icon" aria-label="Rotate 5°" title="Tilt 5°" @onclick="() => RotateByAsync(sel, 5)"><Icon Name="rotate" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="@L["Rotate 5°"]" title="@L["Tilt 5°"]" @onclick="() => RotateByAsync(sel, 5)"><Icon Name="rotate" Size="16" /></button>
                                 <button type="button" class="fb-icon" aria-label="Duplicate" title="Duplicate" @onclick="() => ActionAsync(ElementAction.Duplicate)"><Icon Name="copy" Size="16" /></button>
                                 <button type="button" class="fb-icon" aria-label="Bring to front" title="Bring to front" @onclick="() => ActionAsync(ElementAction.Front)"><Icon Name="front" Size="16" /></button>
                                 <button type="button" class="fb-icon fb-danger" aria-label="Delete" title="Delete" @onclick="() => ActionAsync(ElementAction.Delete)"><Icon Name="trash" Size="16" /></button>
@@ -136,50 +136,50 @@ else if (_space is not null)
                     }
                     </div>
 
-                    <div class="canvas">
+                    <div class="canvas" data-drop-label="@L["Drop photos onto the page"]">
                         <div class="canvas-zoom" @ref="_canvasRoot">
                             <A4Sheet Model="_model" Mode="@(CanEdit ? SheetMode.Edit : SheetMode.View)" SelectedId="_selectedId" MetaEditable="MetaEditable" TitleVersion="_titleVersion" />
                         </div>
                     </div>
 
                     <div class="canvas-bar">
-                        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_pn?.Prev is null)" @onclick="() => Go(_pn?.Prev)"><Icon Name="back" Size="14" />@(_pn?.Prev?.Date.ToString("MMM d", CultureInfo.InvariantCulture) ?? "First")</button>
-                        <span style="font-size:13px;font-weight:600;padding:0 6px">@_date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) · Page @_model.PageNumber</span>
-                        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_pn?.Next is null)" @onclick="() => Go(_pn?.Next)">@(_pn?.Next?.Date.ToString("MMM d", CultureInfo.InvariantCulture) ?? "Latest")<Icon Name="forward" Size="14" /></button>
+                        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_pn?.Prev is null)" @onclick="() => Go(_pn?.Prev)"><Icon Name="back" Size="14" />@(_pn?.Prev is { } pd ? L.Date(pd.Date, DateStyle.MonthDay) : L["First"])</button>
+                        <span style="font-size:13px;font-weight:600;padding:0 6px">@L.Date(_date, DateStyle.Short) · @L["Page {0}", _model.PageNumber]</span>
+                        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_pn?.Next is null)" @onclick="() => Go(_pn?.Next)">@(_pn?.Next is { } nd ? L.Date(nd.Date, DateStyle.MonthDay) : L["Latest"])<Icon Name="forward" Size="14" /></button>
                         <span class="sep"></span>
-                        <button type="button" class="icon-btn borderless" style="width:36px;height:36px" aria-label="Zoom out" @onclick="@(() => ZoomAsync("out"))"><Icon Name="zoom-out" Size="16" /></button>
-                        <button type="button" class="zoom-val btn-ghost" style="border:0;background:none;cursor:pointer" title="Fit to window" @onclick="@(() => ZoomAsync("fit"))">@_zoom%</button>
-                        <button type="button" class="icon-btn borderless" style="width:36px;height:36px" aria-label="Zoom in" @onclick="@(() => ZoomAsync("in"))"><Icon Name="zoom-in" Size="16" /></button>
+                        <button type="button" class="icon-btn borderless" style="width:36px;height:36px" aria-label="@L["Zoom out"]" @onclick="@(() => ZoomAsync("out"))"><Icon Name="zoom-out" Size="16" /></button>
+                        <button type="button" class="zoom-val btn-ghost" style="border:0;background:none;cursor:pointer" title="@L["Fit to window"]" @onclick="@(() => ZoomAsync("fit"))">@_zoom%</button>
+                        <button type="button" class="icon-btn borderless" style="width:36px;height:36px" aria-label="@L["Zoom in"]" @onclick="@(() => ZoomAsync("in"))"><Icon Name="zoom-in" Size="16" /></button>
                         @if (CanEdit)
                         {
                             <span class="sep"></span>
-                            <button type="button" class="btn btn-ghost btn-sm" @onclick="AddSheetAsync"><Icon Name="sheet-plus" Size="14" />Add sheet</button>
+                            <button type="button" class="btn btn-ghost btn-sm" @onclick="AddSheetAsync"><Icon Name="sheet-plus" Size="14" />@L["Add sheet"]</button>
                             @if (_model.SheetCount > 1 && !_model.Elements.Any(e => e.Element.Sheet == _model.SheetCount - 1))
                             {
-                                <button type="button" class="btn btn-ghost btn-sm" @onclick="RemoveSheetAsync"><Icon Name="trash" Size="14" />Remove empty sheet</button>
+                                <button type="button" class="btn btn-ghost btn-sm" @onclick="RemoveSheetAsync"><Icon Name="trash" Size="14" />@L["Remove empty sheet"]</button>
                             }
                         }
                     </div>
                     <p class="hint" style="margin:0;text-align:center">
                         @if (CanEdit)
                         {
-                            <span>Drag to move · corners resize · round handle tilts · double-click text to write · drop or paste photos · ← → change day</span>
+                            <span>@L["Drag to move · corners resize · round handle tilts · double-click text to write · drop or paste photos · ← → change day"]</span>
                         }
                         else
                         {
-                            <span>← → move between days · click anything to see which section it belongs to</span>
+                            <span>@L["← → move between days · click anything to see which section it belongs to"]</span>
                         }
                     </p>
-                    <InputFile @ref="_fileInput" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" OnChange="OnFilesAsync" aria-label="Add photos" tabindex="-1" />
-                    <InputFile @ref="_replaceInput" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" OnChange="OnReplaceAsync" aria-label="Replace photo" tabindex="-1" />
+                    <InputFile @ref="_fileInput" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" OnChange="OnFilesAsync" aria-label="@L["Add photos"]" tabindex="-1" />
+                    <InputFile @ref="_replaceInput" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" OnChange="OnReplaceAsync" aria-label="@L["Replace photo"]" tabindex="-1" />
                 </section>
 
-                <aside class="inspector" aria-label="Inspector">
+                <aside class="inspector" aria-label="@L["Inspector"]">
                     @if (Selected is { } item)
                     {
                         <div style="display:flex;justify-content:space-between;align-items:center">
-                            <span class="smallcaps">Selected</span>
-                            <button type="button" class="btn btn-ghost btn-sm" @onclick="() => SelectAsync(null)">Done</button>
+                            <span class="smallcaps">@L["Selected"]</span>
+                            <button type="button" class="btn btn-ghost btn-sm" @onclick="() => SelectAsync(null)">@L["Done"]</button>
                         </div>
                         <ElementInspector Item="item" Theme="@_model.Theme"
                                           OnData="d => UpdateDataAsync(item, d)"
@@ -192,23 +192,23 @@ else if (_space is not null)
                     else
                     {
                         <div class="insp-group">
-                            <span class="smallcaps">Page theme</span>
+                            <span class="smallcaps">@L["Page theme"]</span>
                             <ThemePicker Value="@_model.Theme" ValueChanged="SetThemeAsync" Disabled="!MetaEditable" />
                         </div>
 
                         <div class="insp-group">
-                            <span class="smallcaps">Title & tags</span>
+                            <span class="smallcaps">@L["Title & tags"]</span>
                             @if (MetaEditable)
                             {
-                                <input class="input" value="@_model.Title" placeholder="Name this day…" maxlength="300" aria-label="Page title" @onchange="SetTitleAsync" />
+                                <input class="input" dir="auto" value="@_model.Title" placeholder="@L["Name this day…"]" maxlength="300" aria-label="@L["Page title"]" @onchange="SetTitleAsync" />
                                 <div class="tag-input">
                                     @foreach (var t in _model.Tags)
                                     {
-                                        <span class="chip chip-outline">@t<button type="button" class="chip-x" aria-label="@($"Remove {t}")" @onclick="() => RemoveTagAsync(t)"><Icon Name="close" Size="12" /></button></span>
+                                        <span class="chip chip-outline" dir="auto">@t<button type="button" class="chip-x" aria-label="@L["Remove {0}", t]" @onclick="() => RemoveTagAsync(t)"><Icon Name="close" Size="12" /></button></span>
                                     }
                                     @if (_model.Tags.Count < 8)
                                     {
-                                        <input placeholder="Add a tag, press Enter" aria-label="Add a tag" @bind="_newTag" @bind:event="oninput" @onkeydown="TagKeyAsync" maxlength="40" />
+                                        <input dir="auto" placeholder="@L["Add a tag, press Enter"]" aria-label="@L["Add a tag"]" @bind="_newTag" @bind:event="oninput" @onkeydown="TagKeyAsync" maxlength="40" />
                                     }
                                 </div>
                                 <div class="tag-suggest">
@@ -220,19 +220,30 @@ else if (_space is not null)
                             }
                             else
                             {
-                                <div class="lock-explain"><Icon Name="lock" /><span>The title, date, theme and tags locked together with this page's first section.</span></div>
+                                <div class="lock-explain"><Icon Name="lock" /><span>@L["The title, date, theme and tags locked together with this page's first section."]</span></div>
                                 @if (_model.Tags.Count > 0)
                                 {
-                                    <div style="display:flex;flex-wrap:wrap;gap:6px">@foreach (var t in _model.Tags) { <span class="chip chip-outline">@t</span> }</div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:6px">@foreach (var t in _model.Tags) { <span class="chip chip-outline" dir="auto">@t</span> }</div>
                                 }
                             }
                         </div>
 
                         <div class="insp-group">
-                            <span class="smallcaps">Sections</span>
+                            <span class="smallcaps">@L["Page language"]</span>
+                            <div class="seg" role="group" aria-label="@L["Page language"]">
+                                @foreach (var lc in Lang.All)
+                                {
+                                    <button type="button" lang="@lc" disabled="@(!MetaEditable)" aria-pressed="@(_model.Language == lc ? "true" : "false")" @onclick="() => SetLanguageAsync(lc)">@Lang.NativeName(lc)</button>
+                                }
+                            </div>
+                            <span class="hint">@L["Arabic pages read right to left, with Arabic dates and headings."]</span>
+                        </div>
+
+                        <div class="insp-group">
+                            <span class="smallcaps">@L["Sections"]</span>
                             <SectionPanel Sections="_page.Sections" Policy="Policy" Now="_now" ActiveSectionId="ActiveSectionId" Counts="SectionCounts"
                                           OnSubmit="SubmitAsync" OnAdd="AddSectionAsync" OnRename="RenameSectionAsync" OnDelete="DeleteSectionAsync" />
-                            <span class="hint">Submitted sections stay editable for @Policy.EditWindow.TotalHours hours, then lock forever.</span>
+                            <span class="hint">@L["Submitted sections stay editable for {0} hours, then lock forever.", Policy.EditWindow.TotalHours]</span>
                         </div>
 
                         @if (CanEdit)
@@ -245,22 +256,22 @@ else if (_space is not null)
                         @if (_backlinks.Count > 0)
                         {
                             <div class="insp-group">
-                                <span class="smallcaps">Linked from</span>
+                                <span class="smallcaps">@L["Linked from"]</span>
                                 <div class="backlinks">
                                     @foreach (var b in _backlinks)
                                     {
-                                        <a class="backlink" href="@b.Url"><span style="font-size:18px">@b.SpaceEmoji</span><span><strong>@(string.IsNullOrWhiteSpace(b.Title) ? "Untitled" : b.Title)</strong><br /><span class="muted">@b.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span></span></a>
+                                        <a class="backlink" href="@b.Url"><span style="font-size:18px">@b.SpaceEmoji</span><span><strong dir="auto">@(string.IsNullOrWhiteSpace(b.Title) ? L["Untitled"] : b.Title)</strong><br /><span class="muted">@L.Date(b.Date, DateStyle.Short)</span></span></a>
                                     }
                                 </div>
                             </div>
                         }
 
                         <div class="insp-group">
-                            <span class="smallcaps">This page</span>
-                            <button type="button" class="btn btn-secondary" @onclick="() => _share = true"><Icon Name="share" Size="16" />Share & export</button>
+                            <span class="smallcaps">@L["This page"]</span>
+                            <button type="button" class="btn btn-secondary" @onclick="() => _share = true"><Icon Name="share" Size="16" />@L["Share & export"]</button>
                             @if (CanDeletePage)
                             {
-                                <button type="button" class="btn btn-ghost" style="color:var(--danger)" @onclick="() => _confirmDelete = true"><Icon Name="trash" Size="16" />Delete page</button>
+                                <button type="button" class="btn btn-ghost" style="color:var(--danger)" @onclick="() => _confirmDelete = true"><Icon Name="trash" Size="16" />@L["Delete page"]</button>
                             }
                         </div>
                     }
@@ -270,23 +281,23 @@ else if (_space is not null)
             <ShareDialog @bind-Open="_share" PageId="_page.Id" ShareToken="@_page.ShareToken" ShareTokenChanged="t => _page.ShareToken = t" />
             <PagePickerDialog @bind-Open="_pickLink" ExcludePageId="_page.Id" OnPicked="OnLinkPickedAsync" />
 
-            <Modal @bind-Open="_askSection" Title="Where should this go?">
+            <Modal @bind-Open="_askSection" Title="@L["Where should this go?"]">
                 <ChildContent>
-                    <p style="margin:0">There's no open draft on this page. <strong>@_graceSection?.Label</strong> was submitted but is still editable for @(_graceSection is null ? "" : SectionLockPolicy.FormatSpan(Policy.TimeLeft(_graceSection, _now) ?? TimeSpan.Zero)).</p>
+                    <p style="margin:0">@L["There's no open draft on this page. “{0}” was submitted but is still editable for {1}.", _graceSection?.Label ?? "", _graceSection is null ? "" : SectionLockPolicy.FormatSpan(Policy.TimeLeft(_graceSection, _now) ?? TimeSpan.Zero)]</p>
                 </ChildContent>
                 <Footer>
-                    <button type="button" class="btn btn-secondary" @onclick="() => AnswerSection(false)">Start a new section</button>
-                    <button type="button" class="btn btn-primary" @onclick="() => AnswerSection(true)">Add to @_graceSection?.Label</button>
+                    <button type="button" class="btn btn-secondary" @onclick="() => AnswerSection(false)">@L["Start a new section"]</button>
+                    <button type="button" class="btn btn-primary" @onclick="() => AnswerSection(true)">@L["Add to {0}", _graceSection?.Label ?? ""]</button>
                 </Footer>
             </Modal>
 
-            <Modal @bind-Open="_confirmDelete" Title="Delete this page?">
+            <Modal @bind-Open="_confirmDelete" Title="@L["Delete this page?"]">
                 <ChildContent>
-                    <p style="margin:0">The page for <strong>@_date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)</strong> and everything on it will be removed. This can't be undone.</p>
+                    <p style="margin:0">@L["The page for {0} and everything on it will be removed. This can't be undone.", L.Date(_date, DateStyle.LongNoWeekday)]</p>
                 </ChildContent>
                 <Footer>
-                    <button type="button" class="btn btn-ghost" @onclick="() => _confirmDelete = false">Keep it</button>
-                    <button type="button" class="btn btn-danger" @onclick="DeletePageAsync"><Icon Name="trash" Size="16" />Delete page</button>
+                    <button type="button" class="btn btn-ghost" @onclick="() => _confirmDelete = false">@L["Keep it"]</button>
+                    <button type="button" class="btn btn-danger" @onclick="DeletePageAsync"><Icon Name="trash" Size="16" />@L["Delete page"]</button>
                 </Footer>
             </Modal>
         }
@@ -328,8 +339,11 @@ else if (_space is not null)
     private PeriodicTimer? _timer;
     private CancellationTokenSource _cts = new();
 
-    private static readonly string[] TagSuggestions =
+    private static readonly string[] TagSuggestionKeys =
         ["☀️ Sunny", "🌧️ Rainy", "😊 Good day", "😴 Tired", "🎉 Milestone", "💡 Idea", "📍 Home", "✈️ Travel", "🌱 Fresh start", "🍂 Autumn", "❄️ Winter", "🌸 Spring"];
+
+    /// <summary>Suggested tags in the page's own language (tags are printed on the page).</summary>
+    private IEnumerable<string> TagSuggestions => TagSuggestionKeys.Select(k => Loc.TFor(_model?.Language ?? Lang.En, k));
 
     private bool CanEdit => _page is not null && _page.Sections.Any(s => Policy.IsEditable(s, _now));
     private bool MetaEditable => _page is not null && Policy.IsMetaEditable(_page.Sections, _now);
@@ -339,7 +353,7 @@ else if (_space is not null)
     private Dictionary<Guid, int> SectionCounts => _model?.Elements.GroupBy(e => e.Element.SectionId).ToDictionary(g => g.Key, g => g.Count()) ?? [];
 
     private string PageTitleText => _space is null ? "Dayleaf"
-        : $"{(_model is null || string.IsNullOrWhiteSpace(_model.Title) ? _date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) : _model.Title)} · {_space.Name}";
+        : $"{(_model is null || string.IsNullOrWhiteSpace(_model.Title) ? L.Date(_date, DateStyle.Short) : _model.Title)} · {_space.Name}";
 
     // ───────────────────────── lifecycle ─────────────────────────
 
@@ -450,7 +464,7 @@ else if (_space is not null)
         catch (Exception ex)
         {
             _saveClass = "err";
-            Toasts.Error("Something went wrong: " + ex.Message);
+            Toasts.Error(L["Something went wrong: {0}", ex.Message]);
             await RefreshAsync();
             return false;
         }
@@ -477,16 +491,25 @@ else if (_space is not null)
             Nav.NavigateTo($"/s/{_space.Slug}/{d:yyyy-MM-dd}");
             return;
         }
-        var ok = await RunAsync(() => Pages.UpdatePageMetaAsync(_page.Id, _model!.Title, _model.Theme, _model.Tags, d), $"Moved to {d:MMM d, yyyy}");
+        var ok = await RunAsync(() => Pages.UpdatePageMetaAsync(_page.Id, _model!.Title, _model.Theme, _model.Tags, d), L["Moved to {0}", L.Date(d, DateStyle.Short)]);
         if (ok) Nav.NavigateTo($"/s/{_space.Slug}/{d:yyyy-MM-dd}", replace: true);
     }
 
-    private Task SaveMetaAsync(string? title = null, string? theme = null, List<string>? tags = null) =>
+    private Task SaveMetaAsync(string? title = null, string? theme = null, List<string>? tags = null, string? language = null) =>
         RunAsync(async () =>
         {
-            await Pages.UpdatePageMetaAsync(_page!.Id, title ?? _model!.Title, theme ?? _model!.Theme, tags ?? _model!.Tags, null);
+            await Pages.UpdatePageMetaAsync(_page!.Id, title ?? _model!.Title, theme ?? _model!.Theme, tags ?? _model!.Tags, null, language);
             await RefreshAsync();
         });
+
+    private async Task SetLanguageAsync(string language)
+    {
+        if (_model is null || _model.Language == language) return;
+        _titleVersion++;
+        await SaveMetaAsync(language: language);
+        // The sheet direction changed: let the canvas engine re-bind to the new DOM.
+        _jsBoundPage = null;
+    }
 
     private Task SetThemeAsync(string theme) => SaveMetaAsync(theme: theme);
 
@@ -512,7 +535,7 @@ else if (_space is not null)
     private async Task DeletePageAsync()
     {
         _confirmDelete = false;
-        if (await RunAsync(() => Pages.DeletePageAsync(_page!.Id), "Page deleted"))
+        if (await RunAsync(() => Pages.DeletePageAsync(_page!.Id), L["Page deleted"]))
             Nav.NavigateTo($"/s/{_space!.Slug}");
     }
 
@@ -535,14 +558,14 @@ else if (_space is not null)
     {
         await Pages.SubmitSectionAsync(s.Id);
         await RefreshAsync();
-    }, $"“{s.Label}” submitted — editable for {Policy.EditWindow.TotalHours:0} more hours, then it locks.");
+    }, L["“{0}” submitted — editable for {1} more hours, then it locks.", s.Label, Policy.EditWindow.TotalHours]);
 
     private Task AddSectionAsync() => RunAsync(async () =>
     {
         var sec = await Pages.AddSectionAsync(_page!.Id);
         _chosenSection = null;
         await RefreshAsync();
-        Toasts.Success($"New section: {sec.Label}");
+        Toasts.Success(L["New section: {0}", sec.Label]);
     });
 
     private Task RenameSectionAsync((Section Section, string Label) r) => RunAsync(async () =>
@@ -555,7 +578,7 @@ else if (_space is not null)
     {
         await Pages.DeleteSectionAsync(s.Id);
         await RefreshAsync();
-    }, $"Removed “{s.Label}”");
+    }, L["Removed “{0}”", s.Label]);
 
     /// <summary>Decides which section receives new elements (plan §8): open draft, or ask about a section still in its grace window.</summary>
     private async Task<(bool Ok, Guid? SectionId)> ResolveTargetAsync()
@@ -621,8 +644,8 @@ else if (_space is not null)
             ElementKind.Text => new TextData(),
             ElementKind.Heading => new HeadingData(),
             ElementKind.Note => new NoteData { Color = new[] { "yellow", "pink", "mint", "sky", "lilac" }[Random.Shared.Next(5)] },
-            ElementKind.Checklist => new ChecklistData { Title = "To do", Items = [new() { Text = "" }] },
-            ElementKind.Quote => new QuoteData { Label = "THE TAKEAWAY" },
+            ElementKind.Checklist => new ChecklistData { Title = Loc.TFor(_model?.Language ?? Lang.En, "To do"), Items = [new() { Text = "" }] },
+            ElementKind.Quote => new QuoteData { Label = Loc.TFor(_model?.Language ?? Lang.En, "THE TAKEAWAY") },
             ElementKind.Label => new LabelData(),
             ElementKind.Divider => new DividerData { Style = "wave" },
             ElementKind.Tape => new TapeData(),
@@ -717,7 +740,7 @@ else if (_space is not null)
             i++;
         }
         _saveClass = "";
-        if (i > 0) Toasts.Success(i == 1 ? "Photo added" : $"{i} photos added");
+        if (i > 0) Toasts.Success(L["{0} added", L.Count(i, Noun.Photo)]);
     }
 
     private static readonly string[] Styles = ["sticker", "polaroid", "taped"];
@@ -734,7 +757,7 @@ else if (_space is not null)
             _undo.Add(new UndoEntry("replace", sel.Element.Clone(), null));
             await Pages.SetElementMediaAsync(sel.Element.Id, media.Id);
             await RefreshAsync();
-        }, "Photo replaced");
+        }, L["Photo replaced"]);
     }
 
     // ───────────────────────── element edits ─────────────────────────
@@ -819,7 +842,7 @@ else if (_space is not null)
                     _selectedId = null;
                     await RefreshAsync();
                 });
-                Toasts.Show("Deleted · Ctrl+Z to undo");
+                Toasts.Show(L["Deleted · Ctrl+Z to undo"]);
                 break;
         }
     }
@@ -868,7 +891,7 @@ else if (_space is not null)
                 }
             }
             await RefreshAsync();
-        }, "Undone");
+        }, L["Undone"]);
     }
 
     private Task<Guid?> EditableSectionOr(Guid sectionId)
@@ -991,7 +1014,7 @@ else if (_space is not null)
     [JSInvokable]
     public Task Toast(string message)
     {
-        Toasts.Show(message);
+        Toasts.Show(L[message]); // JS sends the English key
         return Task.CompletedTask;
     }
 

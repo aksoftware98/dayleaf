@@ -14,6 +14,7 @@ let listKeys = null;  // timeline keyboard handler
 // ── helpers ────────────────────────────────────────────────────────────────
 const num = (v, d = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : d; };
 const round1 = v => Math.round(v * 10) / 10;
+const isRtl = () => document.documentElement.dir === 'rtl';
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 function isTyping(target) {
@@ -417,7 +418,9 @@ function onKeyDown(e) {
       }, 250);
     } else if (k === 'ArrowLeft' || k === 'ArrowRight') {
       e.preventDefault();
-      call('OnKey', k === 'ArrowLeft' ? 'prev' : 'next', false);
+      // In right-to-left layouts the previous day is to the right.
+      const back = isRtl() ? 'ArrowRight' : 'ArrowLeft';
+      call('OnKey', k === back ? 'prev' : 'next', false);
     }
     return;
   }
@@ -519,7 +522,9 @@ export function initListKeys(dotNetRef) {
     if (isTyping(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
       e.preventDefault();
-      dotNetRef.invokeMethodAsync('OnListKey', e.key).catch(() => { });
+      // .NET thinks in LTR terms (ArrowLeft = earlier); swap for right-to-left layouts.
+      const key = isRtl() ? (e.key === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft') : e.key;
+      dotNetRef.invokeMethodAsync('OnListKey', key).catch(() => { });
     }
   };
   document.addEventListener('keydown', listKeys);

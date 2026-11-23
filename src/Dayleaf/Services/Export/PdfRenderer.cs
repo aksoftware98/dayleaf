@@ -66,8 +66,8 @@ public sealed class PdfRenderer(ILogger<PdfRenderer> logger) : IAsyncDisposable
             }
         }
         logger.LogWarning("No browser for PDF rendering: {Errors}", string.Join(" | ", errors));
-        throw new PdfUnavailableException(
-            "Dayleaf couldn't start Edge or Chrome to make the PDF. Install one of them, or use Print and choose Save as PDF with margins set to None.");
+        throw new PdfUnavailableException(Dayleaf.Localization.Loc.T(
+            "Dayleaf couldn't start Edge or Chrome to make the PDF. Install one of them, or use Print and choose Save as PDF with margins set to None."));
     }
 
     public async ValueTask DisposeAsync()

@@ -1,3 +1,4 @@
+using Dayleaf.Localization;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -37,10 +38,10 @@ public sealed partial class DayleafImporter(
     {
         using var zip = OpenChecked(archivePath);
         var manifest = await ReadManifestAsync(zip);
-        var data = await ReadJsonAsync<DataDto>(zip, "data.json") ?? throw new ImportRejectedException("data.json is missing or empty.");
+        var data = await ReadJsonAsync<DataDto>(zip, "data.json") ?? throw new ImportRejectedException(Loc.T("data.json is missing or empty."));
 
         var isPage = manifest.Kind == "page";
-        if (isPage && targetSpaceId is null) throw new ImportRejectedException("Pick a space to import this page into.");
+        if (isPage && targetSpaceId is null) throw new ImportRejectedException(Loc.T("Pick a space to import this page into."));
 
         var now = clock.GetUtcNow();
         var tempDir = Path.Combine(paths.TempDirectory, $"import-{Guid.NewGuid():N}");
@@ -60,7 +61,7 @@ public sealed partial class DayleafImporter(
                 if (m.File is null || !MediaPath().IsMatch(m.File)) continue; // zip-slip & junk protection
                 var entry = zip.GetEntry(m.File);
                 if (entry is null) continue;
-                if (entry.Length > MaxMediaBytes) throw new ImportRejectedException($"An image in the file is too large ({entry.Length / 1024 / 1024} MB).");
+                if (entry.Length > MaxMediaBytes) throw new ImportRejectedException(Loc.T("An image in the file is too large ({0} MB).", entry.Length / 1024 / 1024));
 
                 var temp = Path.Combine(tempDir, $"{Guid.NewGuid():N}.bin");
                 string sha;
@@ -76,7 +77,7 @@ public sealed partial class DayleafImporter(
                     while ((read = await src.ReadAsync(buf, ct)) > 0)
                     {
                         total += read;
-                        if (total > MaxMediaBytes) throw new ImportRejectedException("An image in the file is larger than it claims.");
+                        if (total > MaxMediaBytes) throw new ImportRejectedException(Loc.T("An image in the file is larger than it claims."));
                         if (headLen < head.Length)
                         {
                             var n = Math.Min(head.Length - headLen, read);
@@ -146,7 +147,7 @@ public sealed partial class DayleafImporter(
             if (isPage)
             {
                 targetSpace = await db.Spaces.FirstOrDefaultAsync(s => s.Id == targetSpaceId, ct)
-                              ?? throw new ImportRejectedException("The target space doesn't exist.");
+                              ?? throw new ImportRejectedException(Loc.T("The target space doesn't exist."));
             }
 
             foreach (var sd in data.Spaces ?? [])
@@ -159,9 +160,9 @@ public sealed partial class DayleafImporter(
                 else
                 {
                     var name = Cap(sd.Name, 100).Trim();
-                    if (name.Length == 0) name = "Imported space";
+                    if (name.Length == 0) name = Loc.T("Imported space");
                     if (await db.Spaces.AnyAsync(x => x.Name == name, ct) || db.Spaces.Local.Any(x => x.Name == name))
-                        name = $"{name} (imported {importStamp})";
+                        name = Loc.T("{0} (imported {1})", name, importStamp);
                     space = new Space
                     {
                         Name = name,
@@ -170,6 +171,7 @@ public sealed partial class DayleafImporter(
                         Color = SpaceColors.Get(sd.Color).Id,
                         Description = string.IsNullOrWhiteSpace(sd.Description) ? null : Cap(sd.Description, 1000),
                         DefaultTheme = Themes.Get(sd.DefaultTheme).Id,
+                        DefaultLanguage = Lang.Normalize(sd.DefaultLanguage),
                         CoverMediaId = sd.CoverMediaId is { } c && mediaMap.TryGetValue(c, out var nc) ? nc : null,
                         CreatedAt = sd.CreatedAt == default ? now : sd.CreatedAt,
                     };
@@ -183,8 +185,9 @@ public sealed partial class DayleafImporter(
                     {
                         var clash = await db.Pages.AsNoTracking().FirstOrDefaultAsync(x => x.SpaceId == space.Id && x.Date == pd.Date, ct);
                         if (clash is not null)
-                            throw new ImportRejectedException($"“{space.Name}” already has a page on {pd.Date:MMM d, yyyy}"
-                                + (string.IsNullOrWhiteSpace(clash.Title) ? "." : $": “{clash.Title}”.") + " Move or delete it first.");
+                            throw new ImportRejectedException(string.IsNullOrWhiteSpace(clash.Title)
+                                ? Loc.T("“{0}” already has a page on {1}. Move or delete it first.", space.Name, Dates.Format(pd.Date, DateStyle.Short))
+                                : Loc.T("“{0}” already has a page on {1}: “{2}”. Move or delete it first.", space.Name, Dates.Format(pd.Date, DateStyle.Short), clash.Title));
                     }
                     if (db.Pages.Local.Any(x => x.SpaceId == space.Id && x.Date == pd.Date)) continue; // duplicate date inside the file
 
@@ -195,6 +198,7 @@ public sealed partial class DayleafImporter(
                         Date = pd.Date,
                         Title = Cap(pd.Title, 300),
                         Theme = Themes.Get(pd.Theme).Id,
+                        Language = Lang.Normalize(pd.Language ?? sd.DefaultLanguage),
                         Tags = (pd.Tags ?? []).Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => Cap(t.Trim(), 40)).Distinct().Take(8).ToList(),
                         SheetCount = Math.Clamp(pd.SheetCount, 1, 20),
                         CreatedAt = pd.CreatedAt == default ? now : pd.CreatedAt,
@@ -221,7 +225,7 @@ public sealed partial class DayleafImporter(
                     if (sectionMap.Count == 0)
                     {
                         // A page always has at least one section; content without a section is locked as of now.
-                        var sec = new Section { PageId = page.Id, Seq = 1, Label = "Imported", CreatedAt = now, SubmittedAt = now };
+                        var sec = new Section { PageId = page.Id, Seq = 1, Label = Loc.T("Imported"), CreatedAt = now, SubmittedAt = now };
                         db.Sections.Add(sec);
                     }
 
@@ -283,8 +287,9 @@ public sealed partial class DayleafImporter(
             foreach (var (from, to) in pendingMoves)
                 File.Move(from, to, overwrite: true);
 
-            var msg = $"Imported {Plural(spaces, "space")}, {Plural(pages, "page")}, {Plural(photos, "photo")}.";
-            if (isPage) msg = $"Imported {Plural(pages, "page")} into {targetSpace!.Name}.";
+            var msg = isPage
+                ? Loc.T("Imported {0} into {1}.", Loc.Plural(pages, Noun.Page), targetSpace!.Name)
+                : Loc.T("Imported {0}, {1}, {2}.", Loc.Plural(spaces, Noun.Space), Loc.Plural(pages, Noun.Page), Loc.Plural(photos, Noun.Photo));
             return new ImportSummary(spaces, pages, photos, elements, msg);
         }
         finally
@@ -296,8 +301,8 @@ public sealed partial class DayleafImporter(
     private static ZipArchive OpenChecked(string path)
     {
         var info = new FileInfo(path);
-        if (!info.Exists) throw new ImportRejectedException("The file wasn't found.");
-        if (info.Length > MaxArchiveBytes) throw new ImportRejectedException("That file is over 2 GB.");
+        if (!info.Exists) throw new ImportRejectedException(Loc.T("The file wasn't found."));
+        if (info.Length > MaxArchiveBytes) throw new ImportRejectedException(Loc.T("That file is over 2 GB."));
         ZipArchive zip;
         try
         {
@@ -305,15 +310,15 @@ public sealed partial class DayleafImporter(
         }
         catch (InvalidDataException)
         {
-            throw new ImportRejectedException("That isn't a .dayleaf file (it's not a valid zip archive).");
+            throw new ImportRejectedException(Loc.T("That isn't a .dayleaf file (it's not a valid zip archive)."));
         }
         try
         {
-            if (zip.Entries.Count > MaxEntries) throw new ImportRejectedException($"That file has too many entries (over {MaxEntries:N0}).");
+            if (zip.Entries.Count > MaxEntries) throw new ImportRejectedException(Loc.T("That file has too many entries (over {0}).", MaxEntries));
             foreach (var e in zip.Entries)
             {
                 var ratio = e.Length / (double)Math.Max(1, e.CompressedLength);
-                if (ratio > MaxCompressionRatio) throw new ImportRejectedException("That file looks unsafe (an entry is compressed suspiciously well) and was rejected.");
+                if (ratio > MaxCompressionRatio) throw new ImportRejectedException(Loc.T("That file looks unsafe (an entry is compressed suspiciously well) and was rejected."));
             }
             return zip;
         }
@@ -326,12 +331,12 @@ public sealed partial class DayleafImporter(
 
     private static async Task<ManifestDto> ReadManifestAsync(ZipArchive zip)
     {
-        var manifest = await ReadJsonAsync<ManifestDto>(zip, "manifest.json") ?? throw new ImportRejectedException("manifest.json is missing.");
-        if (manifest.Format != DayleafFormat.FormatName) throw new ImportRejectedException("That isn't a Dayleaf file.");
+        var manifest = await ReadJsonAsync<ManifestDto>(zip, "manifest.json") ?? throw new ImportRejectedException(Loc.T("manifest.json is missing."));
+        if (manifest.Format != DayleafFormat.FormatName) throw new ImportRejectedException(Loc.T("That isn't a Dayleaf file."));
         if (manifest.Version > DayleafFormat.Version)
-            throw new ImportRejectedException($"This file was made by a newer Dayleaf (format v{manifest.Version}). Update Dayleaf to import it.");
-        if (manifest.Version < 1) throw new ImportRejectedException("Unknown file version.");
-        if (manifest.Kind is not ("library" or "space" or "page")) throw new ImportRejectedException("Unknown export kind.");
+            throw new ImportRejectedException(Loc.T("This file was made by a newer Dayleaf (format v{0}). Update Dayleaf to import it.", manifest.Version));
+        if (manifest.Version < 1) throw new ImportRejectedException(Loc.T("Unknown file version."));
+        if (manifest.Kind is not ("library" or "space" or "page")) throw new ImportRejectedException(Loc.T("Unknown export kind."));
         return manifest;
     }
 
@@ -339,7 +344,7 @@ public sealed partial class DayleafImporter(
     {
         var entry = zip.GetEntry(name);
         if (entry is null) return default;
-        if (entry.Length > MaxJsonBytes) throw new ImportRejectedException($"{name} is too large.");
+        if (entry.Length > MaxJsonBytes) throw new ImportRejectedException(Loc.T("{0} is too large.", name));
         await using var s = entry.Open();
         try
         {
@@ -347,11 +352,10 @@ public sealed partial class DayleafImporter(
         }
         catch (JsonException ex)
         {
-            throw new ImportRejectedException($"{name} is damaged: {ex.Message}");
+            throw new ImportRejectedException(Loc.T("{0} is damaged: {1}", name, ex.Message));
         }
     }
 
     private static double Finite(double v, double fallback) => double.IsFinite(v) ? v : fallback;
     private static string Cap(string? s, int max) => s is null ? "" : s.Length > max ? s[..max] : s;
-    private static string Plural(int n, string word) => $"{n:N0} {word}{(n == 1 ? "" : "s")}";
 }

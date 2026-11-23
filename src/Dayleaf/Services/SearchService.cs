@@ -5,7 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dayleaf.Services;
 
-/// <summary>Parses "2025", "2025-06", "2025-06-11", "june 2025", "jun 11 2025", "11 june 2025".</summary>
+/// <summary>
+/// Parses "2025", "2025-06", "2025-06-11", "june 2025", "jun 11 2025", "11 june 2025", and Arabic:
+/// "يونيو 2025", "حزيران 2025", "11 يونيو 2025", "١١ حزيران ٢٠٢٥" (standard and Levantine month names, Arabic-Indic digits).
+/// </summary>
 public sealed partial record DateQuery(int Year, int? Month, int? Day)
 {
     public bool Matches(DateOnly d) => d.Year == Year && (Month is null || d.Month == Month) && (Day is null || d.Day == Day);
@@ -13,7 +16,7 @@ public sealed partial record DateQuery(int Year, int? Month, int? Day)
     public static DateQuery? TryParse(string? text)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
-        text = text.Trim().ToLowerInvariant().Replace(",", " ");
+        text = ArabicText.Normalize(text.Trim()).Replace(",", " ").Replace("،", " ").Replace("/", "-");
 
         var iso = Iso().Match(text);
         if (iso.Success)
@@ -25,8 +28,18 @@ public sealed partial record DateQuery(int Year, int? Month, int? Day)
             return new DateQuery(y, m, d);
         }
 
+        // Arabic month names can be two words ("تشرين الثاني"): match them on the whole string first.
+        int? arMonth = null;
+        foreach (var (name, num) in ArabicMonths)
+        {
+            if (!text.Contains(name, StringComparison.Ordinal)) continue;
+            arMonth = num;
+            text = text.Replace(name, " ", StringComparison.Ordinal);
+            break;
+        }
+
         var parts = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        int? year = null, month = null, day = null;
+        int? year = null, month = arMonth, day = null;
         foreach (var p in parts)
         {
             if (p.Length == 4 && int.TryParse(p, out var yy) && yy is > 1900 and < 2200) year = yy;
@@ -48,6 +61,18 @@ public sealed partial record DateQuery(int Year, int? Month, int? Day)
                 return i + 1;
         return null;
     }
+
+    /// <summary>Normalized Arabic month names; two-word names first so "كانون الثاني" wins over shorter matches.</summary>
+    private static readonly (string Name, int Month)[] ArabicMonths =
+    [
+        .. new (string, int)[]
+        {
+            ("كانون الثاني", 1), ("تشرين الاول", 10), ("تشرين الثاني", 11), ("كانون الاول", 12),
+            ("يناير", 1), ("فبراير", 2), ("مارس", 3), ("ابريل", 4), ("مايو", 5), ("يونيو", 6),
+            ("يوليو", 7), ("اغسطس", 8), ("سبتمبر", 9), ("اكتوبر", 10), ("نوفمبر", 11), ("ديسمبر", 12),
+            ("شباط", 2), ("اذار", 3), ("نيسان", 4), ("ايار", 5), ("حزيران", 6), ("تموز", 7), ("اب", 8), ("ايلول", 9),
+        }.Select(m => (ArabicText.Normalize(m.Item1), m.Item2)).OrderByDescending(m => m.Item1.Length),
+    ];
 
     [GeneratedRegex(@"^(\d{4})(?:-(\d{1,2})(?:-(\d{1,2}))?)?$")]
     private static partial Regex Iso();
@@ -71,6 +96,7 @@ public sealed class SearchService(IDbContextFactory<DayleafDbContext> dbf) : ISe
             ? query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(t => t.Length > 0).Distinct().ToList()
             : [];
 
+        var normTerms = terms.Select(ArabicText.Normalize).Where(t => t.Length > 0).ToList();
         var pages = await db.Pages.AsNoTracking().Select(p => new { p.Id, p.Title, p.Date, p.Tags }).ToListAsync();
         var texts = await db.Elements.AsNoTracking().Where(e => e.PlainText != null)
             .Select(e => new { e.PageId, e.PlainText }).ToListAsync();
@@ -86,10 +112,12 @@ public sealed class SearchService(IDbContextFactory<DayleafDbContext> dbf) : ISe
                 if (dq.Matches(p.Date)) matches.Add((p.Id, Snip(body, null), false, 1));
                 continue;
             }
-            var hay = $"{p.Title} {string.Join(' ', p.Tags)} {body}";
-            if (!terms.All(t => hay.Contains(t, StringComparison.CurrentCultureIgnoreCase))) continue;
-            var titleMatch = terms.Any(t => p.Title.Contains(t, StringComparison.CurrentCultureIgnoreCase));
-            var first = terms.Select(t => body.IndexOf(t, StringComparison.CurrentCultureIgnoreCase)).Where(i => i >= 0).DefaultIfEmpty(-1).Min();
+            // Arabic-aware: أ/إ/آ = ا, ة = ه, ى = ي, tashkeel ignored, Latin case-insensitive.
+            var hay = ArabicText.Normalize($"{p.Title} {string.Join(' ', p.Tags)} {body}");
+            if (!normTerms.All(t => hay.Contains(t, StringComparison.Ordinal))) continue;
+            var title = ArabicText.Normalize(p.Title);
+            var titleMatch = normTerms.Any(t => title.Contains(t, StringComparison.Ordinal));
+            var first = ArabicText.FindMatches(body, terms).Select(m => m.Start).DefaultIfEmpty(-1).First();
             matches.Add((p.Id, Snip(body, first < 0 ? null : first), titleMatch, titleMatch ? 2 : 1));
         }
 

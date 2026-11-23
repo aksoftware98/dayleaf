@@ -1,16 +1,16 @@
-<div class="themes" role="group" aria-label="Page theme">
+<div class="themes" role="group" aria-label="@L["Page theme"]">
     @foreach (var t in Themes.All)
     {
-        <button type="button" class="theme-card" aria-pressed="@(Value == t.Id ? "true" : "false")" title="@t.Blurb" disabled="@Disabled"
+        <button type="button" class="theme-card" aria-pressed="@(Value == t.Id ? "true" : "false")" title="@L[t.Blurb]" disabled="@Disabled"
                 style="background:@t.Paper" @onclick="() => ValueChanged.InvokeAsync(t.Id)">
             <span class="aa" style="font-family:@t.TitleFont;color:@t.Ink;@AaStyle(t)">Aa</span>
             <span class="dots"><i style="background:@t.Accent"></i><i style="background:@t.Accent2"></i></span>
-            <span class="nm" style="color:@t.Ink">@t.Name</span>
+            <span class="nm" style="color:@t.Ink">@L[t.Name]</span>
         </button>
     }
     @if (ShowShuffle)
     {
-        <button type="button" class="theme-card shuffle" disabled="@Disabled" @onclick="Shuffle"><Icon Name="shuffle" Size="16" />Shuffle</button>
+        <button type="button" class="theme-card shuffle" disabled="@Disabled" @onclick="Shuffle"><Icon Name="shuffle" Size="16" />@L["Shuffle"]</button>
     }
 </div>
 

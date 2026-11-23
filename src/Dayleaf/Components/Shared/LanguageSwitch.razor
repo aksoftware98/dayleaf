@@ -1,0 +1,17 @@
+@inject NavigationManager Nav
+
+@* Plain links: the /lang endpoint sets the culture cookie and reloads, so it also works on static pages (login). *@
+<div class="lang-switch" role="group" aria-label="@L["Language"]">
+    @foreach (var lc in Lang.All)
+    {
+        <a href="@Href(lc)" target="_top" lang="@lc" aria-current="@(Lang.Current == lc ? "true" : null)">@Lang.NativeName(lc)</a>
+    }
+</div>
+
+@code {
+    private string Href(string code)
+    {
+        var back = "/" + Nav.ToBaseRelativePath(Nav.Uri);
+        return $"/lang/{code}?r={Uri.EscapeDataString(back)}";
+    }
+}

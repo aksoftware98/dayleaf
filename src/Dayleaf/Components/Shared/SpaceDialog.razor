@@ -1,32 +1,41 @@
 @inject ISpaceService Spaces
 @inject ToastService Toasts
 
-<Modal Open="Open" OpenChanged="OpenChanged" Title="@(Existing is null ? "New space" : "Edit space")">
+<Modal Open="Open" OpenChanged="OpenChanged" Title="@(Existing is null ? L["New space"] : L["Edit space"])">
     <ChildContent>
-        <label class="field">Name
-            <input class="input" @bind="_name" @bind:event="oninput" maxlength="100" placeholder="Our Farm, Typing 365, Life…" autofocus />
+        <label class="field">@L["Name"]
+            <input class="input" dir="auto" @bind="_name" @bind:event="oninput" maxlength="100" placeholder="@L["Our Farm, Typing 365, Life…"]" autofocus />
         </label>
-        <div class="field">Icon
-            <div class="emoji-pick" role="group" aria-label="Icon">
+        <div class="field">@L["Icon"]
+            <div class="emoji-pick" role="group" aria-label="@L["Icon"]">
                 @foreach (var e in EmojiCatalog.SpaceIcons)
                 {
                     <button type="button" aria-label="@e" aria-pressed="@(_emoji == e ? "true" : "false")" @onclick="() => _emoji = e">@e</button>
                 }
             </div>
-            <input class="input" @bind="_emoji" maxlength="8" aria-label="Or type any emoji" style="max-width:120px" />
+            <input class="input" @bind="_emoji" maxlength="8" aria-label="@L["Or type any emoji"]" style="max-width:120px" />
         </div>
-        <div class="field">Color
-            <div class="swatches" role="group" aria-label="Color">
+        <div class="field">@L["Color"]
+            <div class="swatches" role="group" aria-label="@L["Color"]">
                 @foreach (var c in SpaceColors.All)
                 {
-                    <button type="button" class="swatch" style="background:@c.Hex" aria-label="@c.Name" aria-pressed="@(_color == c.Id ? "true" : "false")" @onclick="() => _color = c.Id"></button>
+                    <button type="button" class="swatch" style="background:@c.Hex" aria-label="@L[c.Name]" title="@L[c.Name]" aria-pressed="@(_color == c.Id ? "true" : "false")" @onclick="() => _color = c.Id"></button>
                 }
             </div>
         </div>
-        <label class="field">What's it about? <span class="hint">Optional</span>
-            <input class="input" @bind="_description" maxlength="200" placeholder="the family orchard in Serghaya" />
+        <label class="field">@L["What's it about?"] <span class="hint">@L["Optional"]</span>
+            <input class="input" dir="auto" @bind="_description" maxlength="200" placeholder="@L["the family orchard in Serghaya"]" />
         </label>
-        <div class="field">Default page theme
+        <div class="field">@L["Pages are written in"]
+            <div class="seg" role="group" aria-label="@L["Page language"]">
+                @foreach (var lc in Lang.All)
+                {
+                    <button type="button" lang="@lc" aria-pressed="@(_language == lc ? "true" : "false")" @onclick="() => _language = lc">@Lang.NativeName(lc)</button>
+                }
+            </div>
+            <span class="hint">@L["Sets the direction, dates and headings of new pages. You can change it per page."]</span>
+        </div>
+        <div class="field">@L["Default page theme"]
             <ThemePicker Value="@_theme" ValueChanged="v => _theme = v" ShowShuffle="false" />
         </div>
         @if (_error is not null)
@@ -35,9 +44,9 @@
         }
     </ChildContent>
     <Footer>
-        <button type="button" class="btn btn-ghost" @onclick="() => OpenChanged.InvokeAsync(false)">Cancel</button>
+        <button type="button" class="btn btn-ghost" @onclick="() => OpenChanged.InvokeAsync(false)">@L["Cancel"]</button>
         <button type="button" class="btn btn-primary" disabled="@(string.IsNullOrWhiteSpace(_name) || _busy)" @onclick="SaveAsync">
-            @(Existing is null ? "Create space" : "Save")
+            @(Existing is null ? L["Create space"] : L["Save"])
         </button>
     </Footer>
 </Modal>
@@ -48,7 +57,7 @@
     [Parameter] public Space? Existing { get; set; }
     [Parameter] public EventCallback<Space> OnSaved { get; set; }
 
-    private string _name = "", _emoji = "📓", _color = "forest", _theme = Themes.Default;
+    private string _name = "", _emoji = "📓", _color = "forest", _theme = Themes.Default, _language = Lang.En;
     private string? _description, _error;
     private bool _busy, _wasOpen;
 
@@ -59,11 +68,12 @@
             _error = null;
             if (Existing is { } s)
             {
-                (_name, _emoji, _color, _description, _theme) = (s.Name, s.Emoji, s.Color, s.Description, s.DefaultTheme);
+                (_name, _emoji, _color, _description, _theme, _language) = (s.Name, s.Emoji, s.Color, s.Description, s.DefaultTheme, s.DefaultLanguage);
             }
             else
             {
-                (_name, _emoji, _color, _description, _theme) = ("", "📓", SpaceColors.All[Random.Shared.Next(SpaceColors.All.Count)].Id, null, Themes.Default);
+                (_name, _emoji, _color, _description, _theme, _language) =
+                    ("", "📓", SpaceColors.All[Random.Shared.Next(SpaceColors.All.Count)].Id, null, Themes.Default, Lang.Current);
             }
         }
         _wasOpen = Open;
@@ -76,9 +86,9 @@
         try
         {
             var saved = Existing is null
-                ? await Spaces.CreateAsync(_name, _emoji, _color, _description, _theme)
-                : await Spaces.UpdateAsync(Existing.Id, _name, _emoji, _color, _description, _theme);
-            Toasts.Success(Existing is null ? $"Created {saved.Name}" : "Saved");
+                ? await Spaces.CreateAsync(_name, _emoji, _color, _description, _theme, _language)
+                : await Spaces.UpdateAsync(Existing.Id, _name, _emoji, _color, _description, _theme, _language);
+            Toasts.Success(Existing is null ? L["Created {0}", saved.Name] : L["Saved"]);
             await OpenChanged.InvokeAsync(false);
             await OnSaved.InvokeAsync(saved);
         }

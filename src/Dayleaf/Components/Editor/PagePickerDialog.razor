@@ -1,9 +1,9 @@
 @inject ITimelineService Timeline
 
-<Modal Open="Open" OpenChanged="OpenChanged" Title="Link a page" Wide="true">
+<Modal Open="Open" OpenChanged="OpenChanged" Title="@L["Link a page"]" Wide="true">
     <div class="searchbox" style="min-width:0">
         <Icon Name="search" Size="16" />
-        <input type="search" placeholder="Search by title, space or date (e.g. june 2025)" aria-label="Search pages" @bind="_q" @bind:event="oninput" @bind:after="SearchAsync" />
+        <input type="search" placeholder="@L["Search by title, space or date (e.g. june 2025)"]" aria-label="@L["Search pages"]" dir="auto" @bind="_q" @bind:event="oninput" @bind:after="SearchAsync" />
     </div>
     <div class="picker-list">
         @foreach (var r in _results)
@@ -18,14 +18,14 @@
                     <span class="picker-ico">@r.SpaceEmoji</span>
                 }
                 <span style="min-width:0">
-                    <strong>@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</strong>
-                    <small>@r.SpaceEmoji @r.SpaceName · @r.Date.ToString("ddd, MMM d, yyyy", CultureInfo.InvariantCulture) · Page @r.Number</small>
+                    <strong dir="auto">@(string.IsNullOrWhiteSpace(r.Title) ? L["Untitled page"] : r.Title)</strong>
+                    <small>@r.SpaceEmoji <bdi>@r.SpaceName</bdi> · @L.Date(r.Date, DateStyle.WeekdayShort) · @L["Page {0}", r.Number]</small>
                 </span>
             </button>
         }
         @if (_results.Count == 0)
         {
-            <p class="muted" style="margin:12px 0">No pages match.</p>
+            <p class="muted" style="margin:12px 0">@L["No pages match."]</p>
         }
     </div>
 </Modal>

@@ -36,7 +36,7 @@ public static class ExportEndpoints
         {
             var result = await html.RenderSpaceAsync(id, ParseDate(from), ParseDate(to));
             if (result is null) return Results.NotFound();
-            if (result.Value.Pages == 0) return Results.BadRequest("There are no pages in that range.");
+            if (result.Value.Pages == 0) return Results.BadRequest(Dayleaf.Localization.Loc.T("There are no pages in that range."));
             return await PdfAsync(pdf, result.Value.Html, Path.ChangeExtension(result.Value.FileName, ".pdf"), ct);
         });
 
@@ -63,7 +63,7 @@ public static class ExportEndpoints
         }
         catch (PdfUnavailableException ex)
         {
-            return Results.Problem(ex.Message, statusCode: StatusCodes.Status503ServiceUnavailable, title: "PDF isn't available");
+            return Results.Problem(ex.Message, statusCode: StatusCodes.Status503ServiceUnavailable, title: Dayleaf.Localization.Loc.T("PDF isn't available"));
         }
     }
 

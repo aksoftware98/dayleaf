@@ -26,6 +26,7 @@ public sealed class DayleafDbContext(DbContextOptions<DayleafDbContext> options)
             e.HasIndex(x => x.Slug).IsUnique();
             e.Property(x => x.Name).HasMaxLength(120);
             e.Property(x => x.Slug).HasMaxLength(140);
+            e.Property(x => x.DefaultLanguage).HasMaxLength(8).HasDefaultValue("en");
             e.HasMany(x => x.Pages).WithOne(p => p.Space).HasForeignKey(p => p.SpaceId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -35,6 +36,7 @@ public sealed class DayleafDbContext(DbContextOptions<DayleafDbContext> options)
             e.HasIndex(x => x.ShareToken).IsUnique();
             e.HasIndex(x => x.Date);
             e.Property(x => x.Title).HasMaxLength(300);
+            e.Property(x => x.Language).HasMaxLength(8).HasDefaultValue("en");
             e.HasMany(x => x.Sections).WithOne(s => s.Page).HasForeignKey(s => s.PageId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.Elements).WithOne().HasForeignKey(x => x.PageId).OnDelete(DeleteBehavior.Cascade);
         });

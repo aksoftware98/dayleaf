@@ -8,14 +8,16 @@ public static class Slug
     public static string From(string? text)
     {
         if (string.IsNullOrWhiteSpace(text)) return "space";
-        var normalized = text.Normalize(NormalizationForm.FormD);
+        // Arabic letters are kept (browsers show them as-is in the address bar); hamza forms and
+        // tashkeel are folded so "أحمد" and "احمد" give the same slug. Arabic-Indic digits become 0-9.
+        var normalized = ArabicText.Normalize(text).Normalize(NormalizationForm.FormD);
         var sb = new StringBuilder();
         var lastDash = false;
         foreach (var c in normalized)
         {
             var cat = CharUnicodeInfo.GetUnicodeCategory(c);
             if (cat == UnicodeCategory.NonSpacingMark) continue;
-            if (char.IsLetterOrDigit(c) && c < 128)
+            if (char.IsLetterOrDigit(c) && (c < 128 || c is >= '\u0621' and <= '\u064A' or >= '\u0671' and <= '\u06D3'))
             {
                 sb.Append(char.ToLowerInvariant(c));
                 lastDash = false;

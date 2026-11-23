@@ -44,6 +44,7 @@ public sealed class SpaceDto
     public string Color { get; set; } = "";
     public string? Description { get; set; }
     public string DefaultTheme { get; set; } = "";
+    public string? DefaultLanguage { get; set; }
     public Guid? CoverMediaId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public List<PageDto> Pages { get; set; } = [];
@@ -55,6 +56,7 @@ public sealed class PageDto
     public DateOnly Date { get; set; }
     public string Title { get; set; } = "";
     public string Theme { get; set; } = "";
+    public string? Language { get; set; }
     public List<string> Tags { get; set; } = [];
     public int SheetCount { get; set; } = 1;
     public DateTimeOffset CreatedAt { get; set; }

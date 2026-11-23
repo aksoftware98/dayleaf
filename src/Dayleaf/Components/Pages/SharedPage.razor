@@ -5,13 +5,13 @@
 @inject IPageService Pages
 @inject NavigationManager Nav
 
-<PageTitle>@(_model is null ? "Dayleaf" : $"{(string.IsNullOrWhiteSpace(_model.Title) ? _model.Date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture) : _model.Title)} · {_model.SpaceName}")</PageTitle>
+<PageTitle>@(_model is null ? "Dayleaf" : $"{(string.IsNullOrWhiteSpace(_model.Title) ? Dates.Format(_model.Date, DateStyle.LongNoWeekday, _model.Language) : _model.Title)} · {_model.SpaceName}")</PageTitle>
 <HeadContent>
     <meta name="robots" content="noindex" />
     @if (_model is not null)
     {
         <meta property="og:title" content="@(string.IsNullOrWhiteSpace(_model.Title) ? _model.SpaceName : _model.Title)" />
-        <meta property="og:description" content="@($"{_model.SpaceEmoji} {_model.SpaceName} · {_model.Date.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture)}")" />
+        <meta property="og:description" content="@($"{_model.SpaceEmoji} {_model.SpaceName} · {Dates.Format(_model.Date, DateStyle.Long, _model.Language)}")" />
     }
 </HeadContent>
 
@@ -21,16 +21,17 @@
         <div class="share-head">
             <span style="font-size:28px">@_model.SpaceEmoji</span>
             <span style="display:flex;flex-direction:column">
-                <strong style="font-family:var(--font-display);font-size:20px;font-weight:600">@_model.SpaceName</strong>
-                <span class="muted" style="font-size:13px">@_model.Date.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture) · Page @_model.PageNumber</span>
+                <strong dir="auto" style="font-family:var(--font-display);font-size:20px;font-weight:600">@_model.SpaceName</strong>
+                <span class="muted" style="font-size:13px">@L.Date(_model.Date, DateStyle.Long) · @L["Page {0}", _model.PageNumber]</span>
             </span>
-            <a class="btn btn-primary" href="@($"/p/{Token}.pdf")" download><Icon Name="download" Size="16" />Download PDF</a>
-            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />Print</button>
+            <a class="btn btn-primary" href="@($"/p/{Token}.pdf")" download><Icon Name="download" Size="16" />@L["Download PDF"]</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />@L["Print"]</button>
+            <LanguageSwitch />
         </div>
         <div class="share-fit">
             <A4Sheet Model="_model" Mode="SheetMode.Print" />
         </div>
-        <p class="share-foot">made with dayleaf · a page for every day</p>
+        <p class="share-foot">@L["made with dayleaf · a page for every day"]</p>
     </main>
 }
 

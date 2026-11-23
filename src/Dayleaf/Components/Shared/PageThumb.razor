@@ -27,7 +27,7 @@
             _cached = new SheetModel
             {
                 PageId = Model!.PageId, SpaceId = Model.SpaceId, SpaceName = Model.SpaceName, SpaceSlug = Model.SpaceSlug, SpaceEmoji = Model.SpaceEmoji,
-                Date = Model.Date, Title = Model.Title, Theme = Model.Theme, Tags = Model.Tags, SheetCount = 1, PageNumber = Model.PageNumber,
+                Date = Model.Date, Title = Model.Title, Theme = Model.Theme, Language = Model.Language, Tags = Model.Tags, SheetCount = 1, PageNumber = Model.PageNumber,
                 Elements = Model.Elements.Where(e => e.Element.Sheet == 0).ToList(), LinkCards = Model.LinkCards, MediaUrl = Model.MediaUrl,
             };
             return _cached;

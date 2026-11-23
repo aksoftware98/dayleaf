@@ -6,47 +6,48 @@
 @inject PasswordGate Gate
 
 <div class="shell">
-    <nav class="sidebar @(_menuOpen ? "open" : "")" aria-label="Main">
+    <nav class="sidebar @(_menuOpen ? "open" : "")" aria-label="@L["Main"]">
         <a class="brand" href="/">
             <span class="brand-mark"><Icon Name="book" Size="18" /></span>
             <span class="brand-name">Dayleaf</span>
         </a>
 
         <div class="nav">
-            <NavLink href="/" Match="NavLinkMatch.All"><Icon Name="grid" />Spaces</NavLink>
-            <NavLink href="/search"><Icon Name="search" />Search</NavLink>
-            <NavLink href="/on-this-day"><Icon Name="history" />On this day</NavLink>
-            <NavLink href="/shared"><Icon Name="share" />Shared pages</NavLink>
-            <NavLink href="/library"><Icon Name="library" />Library</NavLink>
+            <NavLink href="/" Match="NavLinkMatch.All"><Icon Name="grid" />@L["Spaces"]</NavLink>
+            <NavLink href="/search"><Icon Name="search" />@L["Search"]</NavLink>
+            <NavLink href="/on-this-day"><Icon Name="history" />@L["On this day"]</NavLink>
+            <NavLink href="/shared"><Icon Name="share" />@L["Shared pages"]</NavLink>
+            <NavLink href="/library"><Icon Name="library" />@L["Library"]</NavLink>
         </div>
 
         <div class="nav nav-spaces">
-            <div class="smallcaps" style="padding: 0 12px 6px">My spaces</div>
+            <div class="smallcaps" style="padding: 0 12px 6px">@L["My spaces"]</div>
             @foreach (var s in _spaces)
             {
                 <NavLink href="@($"/s/{s.Space.Slug}")">
                     <span class="nav-dot" style="background:@SpaceColors.Get(s.Space.Color).Hex"></span>
-                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@s.Space.Name</span>
+                    <span dir="auto" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">@s.Space.Name</span>
                     <span class="nav-count">@s.PageCount</span>
                 </NavLink>
             }
-            <button type="button" class="nav-new" @onclick="() => _newSpace = true"><Icon Name="plus" Size="16" />New space</button>
+            <button type="button" class="nav-new" @onclick="() => _newSpace = true"><Icon Name="plus" Size="16" />@L["New space"]</button>
         </div>
 
         <div class="sidebar-foot">
-            a page a day keeps the years ✦
+            @L["a page a day keeps the years ✦"]
+            <LanguageSwitch />
             @if (Gate.Enabled)
             {
-                <a href="/logout" target="_top" class="btn btn-ghost btn-sm" style="margin-top:10px;font-family:var(--font-ui)"><Icon Name="lock" Size="14" />Lock notebook</a>
+                <a href="/logout" target="_top" class="btn btn-ghost btn-sm" style="margin-top:6px;font-family:var(--font-ui)"><Icon Name="lock" Size="14" />@L["Lock notebook"]</a>
             }
         </div>
     </nav>
 
     <div class="main">
         <div class="mobile-bar">
-            <button type="button" class="icon-btn" aria-label="Menu" @onclick="() => _menuOpen = !_menuOpen"><Icon Name="menu" /></button>
+            <button type="button" class="icon-btn" aria-label="@L["Menu"]" @onclick="() => _menuOpen = !_menuOpen"><Icon Name="menu" /></button>
             <a class="brand" href="/"><span class="brand-name">Dayleaf</span></a>
-            <a class="icon-btn" href="/search" aria-label="Search"><Icon Name="search" /></a>
+            <a class="icon-btn" href="/search" aria-label="@L["Search"]"><Icon Name="search" /></a>
         </div>
         @Body
     </div>
@@ -56,8 +57,8 @@
 <ToastHost />
 
 <div id="blazor-error-ui" data-nosnippet>
-    Something went wrong.
-    <a href="." class="reload">Reload</a>
+    @L["Something went wrong."]
+    <a href="." class="reload">@L["Reload"]</a>
     <span class="dismiss">×</span>
 </div>
 

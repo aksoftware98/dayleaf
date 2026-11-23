@@ -6,19 +6,19 @@
 @inject IPageService Pages
 @inject NavigationManager Nav
 
-<PageTitle>@(_space is null ? "Print" : $"{_space.Name} · book")</PageTitle>
+<PageTitle>@(_space is null ? L["Print"] : $"{_space.Name} · {L["book"]}")</PageTitle>
 
 @if (_space is not null)
 {
     <div class="print-body">
         <div class="print-bar">
-            <a class="btn btn-primary" href="@PdfUrl" download><Icon Name="download" Size="16" />Download book PDF</a>
-            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />Print</button>
-            <span class="muted">@_space.Emoji @_space.Name · @_models.Count page@(_models.Count == 1 ? "" : "s") · @_models.Sum(m => m.SheetCount) A4 sheets</span>
+            <a class="btn btn-primary" href="@PdfUrl" download><Icon Name="download" Size="16" />@L["Download book PDF"]</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />@L["Print"]</button>
+            <span class="muted">@_space.Emoji <bdi>@_space.Name</bdi> · @L.Count(_models.Count, Noun.Page) · @L.Count(_models.Sum(m => m.SheetCount), Noun.Sheet)</span>
         </div>
         @if (_models.Count == 0)
         {
-            <EmptyState IconName="book" Title="No pages in this range" />
+            <EmptyState IconName="book" Title="@L["No pages in this range"]" />
         }
         <div class="sheets" style="gap:36px">
             @foreach (var m in _models)

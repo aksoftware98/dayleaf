@@ -5,17 +5,17 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<PageTitle>Shared pages · Dayleaf</PageTitle>
+<PageTitle>@L["Shared pages"] · Dayleaf</PageTitle>
 
 <div class="page-wrap">
     <header style="display:flex;flex-direction:column;gap:6px">
-        <h1 class="page-title">Shared pages</h1>
-        <p class="muted" style="margin:0">Pages with a public link. Anyone with the link can read them. Turn a link off and it stops working straight away.</p>
+        <h1 class="page-title">@L["Shared pages"]</h1>
+        <p class="muted" style="margin:0">@L["Pages with a public link. Anyone with the link can read them. Turn a link off and it stops working straight away."]</p>
     </header>
 
     @if (_items.Count == 0)
     {
-        <EmptyState IconName="share" Title="Nothing shared yet" Text="Open a page and press Share to make a read-only public link." />
+        <EmptyState IconName="share" Title="@L["Nothing shared yet"]" Text="@L["Open a page and press Share to make a read-only public link."]" />
     }
     else
     {
@@ -26,11 +26,11 @@
                     <div class="list-row">
                         <span style="font-size:26px;width:40px;text-align:center">@r.SpaceEmoji</span>
                         <a href="@r.Url" style="flex:1;min-width:0;text-decoration:none;color:var(--ink)">
-                            <strong style="font-family:var(--font-display);font-weight:500;font-size:17px">@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</strong>
-                            <span class="muted" style="display:block;font-size:12px">@r.SpaceName · @r.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                            <strong dir="auto" style="font-family:var(--font-display);font-weight:500;font-size:17px">@(string.IsNullOrWhiteSpace(r.Title) ? L["Untitled page"] : r.Title)</strong>
+                            <span class="muted" style="display:block;font-size:12px"><bdi>@r.SpaceName</bdi> · @L.Date(r.Date, DateStyle.Short)</span>
                         </a>
-                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => CopyAsync(r)"><Icon Name="copy" Size="14" />Copy link</button>
-                        <button type="button" class="btn btn-ghost btn-sm" @onclick="() => StopAsync(r)">Stop sharing</button>
+                        <button type="button" class="btn btn-secondary btn-sm" @onclick="() => CopyAsync(r)"><Icon Name="copy" Size="14" />@L["Copy link"]</button>
+                        <button type="button" class="btn btn-ghost btn-sm" @onclick="() => StopAsync(r)">@L["Stop sharing"]</button>
                     </div>
                 }
             </div>
@@ -48,13 +48,13 @@
         var page = await Pages.GetAsync(r.Id);
         if (page?.ShareToken is null) return;
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", Nav.ToAbsoluteUri($"/p/{page.ShareToken}").ToString());
-        Toasts.Success("Link copied");
+        Toasts.Success(L["Link copied"]);
     }
 
     private async Task StopAsync(PageRef r)
     {
         await Pages.DisableShareAsync(r.Id);
         _items = await Timeline.GetSharedAsync();
-        Toasts.Show("Sharing stopped — the old link no longer works");
+        Toasts.Show(L["Sharing stopped — the old link no longer works"]);
     }
 }

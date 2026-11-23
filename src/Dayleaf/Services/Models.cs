@@ -43,6 +43,7 @@ public sealed class SheetModel
     public required DateOnly Date { get; set; }
     public required string Title { get; set; }
     public required string Theme { get; set; }
+    public string Language { get; set; } = "en";
     public required List<string> Tags { get; set; }
     public required int SheetCount { get; set; }
     public required int PageNumber { get; set; }

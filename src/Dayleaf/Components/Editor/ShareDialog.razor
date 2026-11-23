@@ -3,31 +3,31 @@
 @inject ToastService Toasts
 @inject IJSRuntime JS
 
-<Modal Open="Open" OpenChanged="OpenChanged" Title="Share & export">
+<Modal Open="Open" OpenChanged="OpenChanged" Title="@L["Share & export"]">
     <div class="share-box">
         <label class="toggle">
             <span>
-                <strong style="display:block">Public link</strong>
-                <span class="hint">Anyone with the link can view this page (read-only). Turn it off and the old link stops working.</span>
+                <strong style="display:block">@L["Public link"]</strong>
+                <span class="hint">@L["Anyone with the link can view this page (read-only). Turn it off and the old link stops working."]</span>
             </span>
-            <input type="checkbox" checked="@(_token is not null)" @onchange="ToggleAsync" aria-label="Public link" />
+            <input type="checkbox" checked="@(_token is not null)" @onchange="ToggleAsync" aria-label="@L["Public link"]" />
         </label>
         @if (_token is not null)
         {
             <div class="share-url">
-                <input class="input" readonly value="@Url" aria-label="Share link" />
-                <button type="button" class="btn btn-secondary" @onclick="CopyAsync"><Icon Name="copy" Size="16" />Copy</button>
+                <input class="input" readonly value="@Url" aria-label="@L["Share link"]" dir="ltr" />
+                <button type="button" class="btn btn-secondary" @onclick="CopyAsync"><Icon Name="copy" Size="16" />@L["Copy"]</button>
             </div>
-            <a class="btn btn-ghost" href="@($"/p/{_token}")" target="_blank" rel="noopener"><Icon Name="eye" Size="16" />Open the public page</a>
+            <a class="btn btn-ghost" href="@($"/p/{_token}")" target="_blank" rel="noopener"><Icon Name="eye" Size="16" />@L["Open the public page"]</a>
         }
-        <div class="smallcaps" style="margin-top:6px">Export this page</div>
+        <div class="smallcaps" style="margin-top:6px">@L["Export this page"]</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.pdf")" download><Icon Name="download" Size="16" />PDF (A4)</a>
-            <a class="btn btn-secondary" href="@($"/print/page/{PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Print</a>
-            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.html")" download><Icon Name="file" Size="16" />HTML file</a>
-            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.dayleaf")" download style="grid-column:span 2"><Icon Name="download" Size="16" />.dayleaf (move to another notebook)</a>
+            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.pdf")" download><Icon Name="download" Size="16" />@L["PDF (A4)"]</a>
+            <a class="btn btn-secondary" href="@($"/print/page/{PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />@L["Print"]</a>
+            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.html")" download><Icon Name="file" Size="16" />@L["HTML file"]</a>
+            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.dayleaf")" download style="grid-column:span 2"><Icon Name="download" Size="16" />@L[".dayleaf (move to another notebook)"]</a>
         </div>
-        <p class="hint" style="margin:0"><strong>PDF (A4)</strong> is made on this computer: exactly one full-bleed A4 page per sheet. Printing yourself? Use margins <strong>None</strong> and scale <strong>100%</strong>.</p>
+        <p class="hint" style="margin:0">@L["PDF (A4) is made on this computer: exactly one full-bleed A4 page per sheet. Printing yourself? Use margins None and scale 100%."]</p>
     </div>
 </Modal>
 
@@ -53,13 +53,13 @@
         if (e.Value is true)
         {
             _token = await Pages.EnableShareAsync(PageId);
-            Toasts.Success("Public link is on");
+            Toasts.Success(L["Public link is on"]);
         }
         else
         {
             await Pages.DisableShareAsync(PageId);
             _token = null;
-            Toasts.Show("Public link turned off — the old link no longer works");
+            Toasts.Show(L["Public link turned off — the old link no longer works"]);
         }
         await ShareTokenChanged.InvokeAsync(_token);
     }
@@ -67,6 +67,6 @@
     private async Task CopyAsync()
     {
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", Url);
-        Toasts.Success("Link copied");
+        Toasts.Success(L["Link copied"]);
     }
 }

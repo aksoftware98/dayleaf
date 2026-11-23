@@ -4,16 +4,16 @@
 @inject IPageService Pages
 @inject NavigationManager Nav
 
-<PageTitle>@(_model is null ? "Print" : $"{_model.SpaceName} · {_model.Date:MMM d, yyyy}")</PageTitle>
+<PageTitle>@(_model is null ? L["Print"] : $"{_model.SpaceName} · {L.Date(_model.Date, DateStyle.Short)}")</PageTitle>
 
 @if (_model is not null)
 {
     <div class="print-body">
         <div class="print-bar">
-            <a class="btn btn-primary" href="@($"/export/page/{Id}.pdf")" download><Icon Name="download" Size="16" />Download PDF</a>
-            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />Print</button>
-            <span class="muted">Printing yourself? Set paper <strong>A4</strong>, margins <strong>None</strong>, scale <strong>100%</strong>.</span>
-            <a class="btn btn-ghost" href="@($"/export/page/{Id}.html")" download>Download HTML</a>
+            <a class="btn btn-primary" href="@($"/export/page/{Id}.pdf")" download><Icon Name="download" Size="16" />@L["Download PDF"]</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />@L["Print"]</button>
+            <span class="muted">@L["Printing yourself? Set paper A4, margins None, scale 100%."]</span>
+            <a class="btn btn-ghost" href="@($"/export/page/{Id}.html")" download>@L["Download HTML"]</a>
         </div>
         <A4Sheet Model="_model" Mode="SheetMode.Print" />
     </div>

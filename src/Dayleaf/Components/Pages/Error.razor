@@ -4,15 +4,15 @@
 @layout PrintLayout
 @using System.Diagnostics
 
-<PageTitle>Error · Dayleaf</PageTitle>
+<PageTitle>@L["Error"] · Dayleaf</PageTitle>
 
 <main class="page-wrap" style="min-height:100vh;justify-content:center">
-    <EmptyState IconName="close" Title="Something tore the page" Text="An unexpected error happened. Your notebook is safe — try again.">
+    <EmptyState IconName="close" Title="@L["Something tore the page"]" Text="@L["An unexpected error happened. Your notebook is safe — try again."]">
         @if (!string.IsNullOrEmpty(_requestId))
         {
-            <p class="hint">Request ID: <code>@_requestId</code></p>
+            <p class="hint">@L["Request ID:"] <code dir="ltr">@_requestId</code></p>
         }
-        <div class="empty-actions"><a class="btn btn-primary" href="/">Back to Dayleaf</a></div>
+        <div class="empty-actions"><a class="btn btn-primary" href="/">@L["Back to Dayleaf"]</a></div>
     </EmptyState>
 </main>
 

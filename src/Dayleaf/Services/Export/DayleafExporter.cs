@@ -94,14 +94,14 @@ public sealed class DayleafExporter(IDbContextFactory<DayleafDbContext> dbf, IMe
             var sd = new SpaceDto
             {
                 Id = s.Id, Name = s.Name, Slug = s.Slug, Emoji = s.Emoji, Color = s.Color, Description = s.Description,
-                DefaultTheme = s.DefaultTheme, CoverMediaId = scope == ExportScope.Page ? null : s.CoverMediaId, CreatedAt = s.CreatedAt,
+                DefaultTheme = s.DefaultTheme, DefaultLanguage = s.DefaultLanguage, CoverMediaId = scope == ExportScope.Page ? null : s.CoverMediaId, CreatedAt = s.CreatedAt,
             };
             if (sd.CoverMediaId is { } cover) mediaIds.Add(cover);
             foreach (var p in pages.Where(p => p.SpaceId == s.Id))
             {
                 var pd = new PageDto
                 {
-                    Id = p.Id, Date = p.Date, Title = p.Title, Theme = p.Theme, Tags = [.. p.Tags], SheetCount = p.SheetCount, CreatedAt = p.CreatedAt,
+                    Id = p.Id, Date = p.Date, Title = p.Title, Theme = p.Theme, Language = p.Language, Tags = [.. p.Tags], SheetCount = p.SheetCount, CreatedAt = p.CreatedAt,
                     // ShareToken is never exported.
                     Sections = p.Sections.OrderBy(x => x.Seq).Select(x => new SectionDto
                     {

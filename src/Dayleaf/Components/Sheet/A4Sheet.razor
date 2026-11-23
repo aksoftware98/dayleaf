@@ -1,6 +1,7 @@
 @using System.Globalization
 @* One rendering path for editor, thumbnails, print, share and HTML export.
-   No Blazor event handlers in here: the editor talks to it through dayleaf.js, so it also renders statically. *@
+   No Blazor event handlers in here: the editor talks to it through dayleaf.js, so it also renders statically.
+   Printed text (header, dates, footer) follows the page's language; edit hints follow the app's language. *@
 
 <div class="sheets mode-@Mode.ToString().ToLowerInvariant() @Class"
      data-page-id="@Model.PageId"
@@ -8,21 +9,22 @@
     @for (var i = 0; i < Model.SheetCount; i++)
     {
         var sheet = i;
-        <article class="sheet theme-@Model.Theme" data-sheet="@sheet" aria-label="@($"{Model.SpaceName}, {Model.Date:MMMM d, yyyy}, sheet {sheet + 1}")">
+        <article class="sheet theme-@Model.Theme" lang="@Pl" dir="@Lang.Dir(Pl)" data-sheet="@sheet"
+                 aria-label="@($"{Model.SpaceName}, {Dates.Format(Model.Date, DateStyle.LongNoWeekday, Pl)}, {P("sheet")} {sheet + 1}")">
             <div class="sheet-deco" aria-hidden="true"></div>
             @if (sheet == 0)
             {
                 <header class="sh-head">
                     <div class="sh-run">
-                        <span>@Model.SpaceName.ToUpperInvariant()&nbsp;&nbsp;·&nbsp;&nbsp;PAGE @Model.PageNumber</span>
+                        <span><bdi>@Upper(Model.SpaceName)</bdi>&nbsp;&nbsp;·&nbsp;&nbsp;@P("PAGE") @Model.PageNumber</span>
                         <span class="sh-brand">dayleaf</span>
                     </div>
                     <div class="sh-rule"></div>
                     <span class="sh-day">@Model.Date.Day.ToString("00", CultureInfo.InvariantCulture)</span>
                     <div class="sh-month">
-                        <span class="sh-month-name">@Model.Date.ToString("MMMM", CultureInfo.InvariantCulture)</span>
+                        <span class="sh-month-name">@Dates.Format(Model.Date, DateStyle.Month, Pl)</span>
                         <span class="sh-yw">
-                            <span class="sh-year">@Model.Date.Year</span><span class="sh-dot"> · </span><span class="sh-wd">@Model.Date.DayOfWeek.ToString().ToUpperInvariant()</span>
+                            <span class="sh-year">@Model.Date.Year</span><span class="sh-dot"> · </span><span class="sh-wd">@Upper(Dates.Format(Model.Date, DateStyle.Weekday, Pl))</span>
                         </span>
                     </div>
                     @if (Model.Tags.Count > 0)
@@ -30,19 +32,19 @@
                         <div class="sh-tags">
                             @for (var t = 0; t < Model.Tags.Count; t++)
                             {
-                                <span class="sh-chip chip-@(t % 3)">@Model.Tags[t]</span>
+                                <span class="sh-chip chip-@(t % 3)" dir="auto">@Model.Tags[t]</span>
                             }
                         </div>
                     }
-                    <h1 class="sh-title" @key="TitleVersion" data-page-field="@(Mode == SheetMode.Edit && MetaEditable ? "title" : null)" data-placeholder="Name this day…">@Model.Title</h1>
+                    <h1 class="sh-title" @key="TitleVersion" dir="auto" data-page-field="@(Mode == SheetMode.Edit && MetaEditable ? "title" : null)" data-placeholder="@L["Name this day…"]">@Model.Title</h1>
                 </header>
             }
             else
             {
                 <header class="sh-head sh-head-small">
                     <div class="sh-run">
-                        <span>@Model.SpaceName.ToUpperInvariant()&nbsp;&nbsp;·&nbsp;&nbsp;PAGE @Model.PageNumber&nbsp;&nbsp;·&nbsp;&nbsp;SHEET @(sheet + 1)</span>
-                        <span class="sh-brand">@Model.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                        <span><bdi>@Upper(Model.SpaceName)</bdi>&nbsp;&nbsp;·&nbsp;&nbsp;@P("PAGE") @Model.PageNumber&nbsp;&nbsp;·&nbsp;&nbsp;@P("SHEET") @(sheet + 1)</span>
+                        <span class="sh-brand">@Dates.Format(Model.Date, DateStyle.Short, Pl)</span>
                     </div>
                     <div class="sh-rule"></div>
                 </header>
@@ -57,8 +59,8 @@
             <footer class="sh-foot">
                 <div class="sh-foot-rule"></div>
                 <div class="sh-foot-row">
-                    <span>@Model.SpaceEmoji @Model.SpaceName</span>
-                    <span>@Model.Date.ToString("ddd · MMM d, yyyy", CultureInfo.InvariantCulture)&nbsp;&nbsp;·&nbsp;&nbsp;<strong>@Model.PageNumber</strong>@(Model.SheetCount > 1 ? $"  ·  {sheet + 1}/{Model.SheetCount}" : "")</span>
+                    <span><bdi>@Model.SpaceEmoji @Model.SpaceName</bdi></span>
+                    <span>@Dates.Format(Model.Date, DateStyle.Footer, Pl)&nbsp;&nbsp;·&nbsp;&nbsp;<strong>@Model.PageNumber</strong>@(Model.SheetCount > 1 ? $"  ·  {sheet + 1}/{Model.SheetCount}" : "")</span>
                 </div>
             </footer>
         </article>
@@ -73,4 +75,13 @@
     [Parameter] public string? Class { get; set; }
     /// <summary>Bumped after an inline title edit so the edited DOM node is replaced, not patched.</summary>
     [Parameter] public int TitleVersion { get; set; }
+
+    /// <summary>The page's language.</summary>
+    private string Pl => Lang.Normalize(Model.Language);
+
+    /// <summary>Printed sheet text, in the page's language.</summary>
+    private string P(string key) => Loc.TFor(Pl, key);
+
+    /// <summary>Arabic has no capitals; only Latin text is upper-cased.</summary>
+    private string Upper(string s) => Pl == Lang.Ar ? s : s.ToUpper(CultureInfo.InvariantCulture);
 }

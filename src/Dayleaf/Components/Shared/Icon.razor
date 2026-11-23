@@ -1,5 +1,5 @@
 @* Inline stroke SVG icons (2px, currentColor). Never emoji. *@
-<svg class="icon @Class" width="@Size" height="@Size" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+<svg class="icon @(Directional ? "icon-dir" : "") @Class" width="@Size" height="@Size" viewBox="0 0 24 24" fill="none" stroke="currentColor"
      stroke-width="@Stroke" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
     @((MarkupString)Path(Name))
 </svg>
@@ -9,6 +9,9 @@
     [Parameter] public int Size { get; set; } = 18;
     [Parameter] public double Stroke { get; set; } = 2;
     [Parameter] public string? Class { get; set; }
+
+    /// <summary>Icons that point "forward" or "back" mirror in right-to-left layouts.</summary>
+    private bool Directional => Name is "back" or "forward" or "undo" or "send";
 
     private static string Path(string name) => name switch
     {

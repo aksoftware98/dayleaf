@@ -71,6 +71,13 @@ namespace Dayleaf.Data.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("en");
+
                     b.Property<string>("ShareToken")
                         .HasColumnType("TEXT");
 
@@ -221,6 +228,13 @@ namespace Dayleaf.Data.Migrations
 
                     b.Property<long>("CreatedAt")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("DefaultLanguage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("en");
 
                     b.Property<string>("DefaultTheme")
                         .IsRequired()
