@@ -42,7 +42,7 @@ function writeBox(el, b) {
   const badge = el.querySelector(':scope > .hdl-badge');
   if (badge) badge.textContent = `${Math.round(b.w)} × ${Math.round(b.h)} · ${Math.round(b.rot)}°`;
   if (el.dataset.kind === 'emoji') {
-    const e = el.querySelector('.el-emoji');
+    const e = el.querySelector('.emoji-glyph');
     if (e) e.style.fontSize = `${Math.min(b.w, b.h) * 0.84}px`;
   }
 }

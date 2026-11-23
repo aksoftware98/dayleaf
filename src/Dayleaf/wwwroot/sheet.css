@@ -225,7 +225,9 @@
 .sh-foot-row strong { color: var(--ink); }
 
 /* ── element host ───────────────────────────────────────────────────────── */
-.el { position: absolute; transform-origin: 50% 50%; }
+/* Elements are placed by left/top only. right/bottom stay auto so no stray rule can win over "left"
+   on right-to-left pages (where CSS ignores left when both are set). */
+.el { position: absolute; transform-origin: 50% 50%; right: auto !important; bottom: auto !important; }
 .el-body { position: absolute; inset: 0; }
 .mode-edit .el[data-editable] { cursor: grab; touch-action: none; }
 .mode-edit .el[data-editable]:hover:not(.is-selected) { outline: 1.5px dashed rgba(47, 123, 234, .55); outline-offset: 3px; }
@@ -316,7 +318,8 @@
 .ph-fx-vivid img { filter: saturate(1.5) contrast(1.1); }
 
 /* ── emoji & stickers ───────────────────────────────────────────────────── */
-.el-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .18)); user-select: none; }
+/* (not .el-emoji: that is the element wrapper's own class, and inset:0 would pin it to the right edge on RTL pages) */
+.emoji-glyph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .18)); user-select: none; }
 
 /* ── notes & checklists ─────────────────────────────────────────────────── */
 .note, .checklist {

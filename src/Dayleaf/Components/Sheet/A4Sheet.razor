@@ -36,7 +36,7 @@
                             }
                         </div>
                     }
-                    <h1 class="sh-title" @key="TitleVersion" dir="auto" data-page-field="@(Mode == SheetMode.Edit && MetaEditable ? "title" : null)" data-placeholder="@L["Name this day…"]">@Model.Title</h1>
+                    <h1 class="sh-title" @key="TitleVersion" dir="@(string.IsNullOrEmpty(Model.Title) ? null : "auto")" data-page-field="@(Mode == SheetMode.Edit && MetaEditable ? "title" : null)" data-placeholder="@L["Name this day…"]">@Model.Title</h1>
                 </header>
             }
             else

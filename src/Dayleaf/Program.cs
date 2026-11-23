@@ -145,8 +145,7 @@ app.MapGet("/look/{name}", (string name, string? r, HttpContext ctx) =>
 {
     ctx.Response.Cookies.Append(Appearance.CookieName, Appearance.Normalize(name),
         new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, SameSite = SameSiteMode.Lax, HttpOnly = true });
-    var back = !string.IsNullOrEmpty(r) && r.StartsWith('/') && !r.StartsWith("//") && !r.StartsWith("/\\") ? r : "/";
-    return Results.LocalRedirect(back);
+    return SafeRedirect.Back(r);
 }).AllowAnonymous();
 app.MapGet("/lang/{code}", (string code, string? r, HttpContext ctx) =>
 {
@@ -154,15 +153,31 @@ app.MapGet("/lang/{code}", (string code, string? r, HttpContext ctx) =>
     ctx.Response.Cookies.Append(CookieRequestCultureProvider.DefaultCookieName,
         CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(lang)),
         new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, SameSite = SameSiteMode.Lax, HttpOnly = true });
-    // Only ever go back to a local path.
-    var back = !string.IsNullOrEmpty(r) && r.StartsWith('/') && !r.StartsWith("//") && !r.StartsWith("/\\") ? r : "/";
-    return Results.LocalRedirect(back);
+    return SafeRedirect.Back(r);
 }).AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
 return 0;
+
+internal static class SafeRedirect
+{
+    /// <summary>
+    /// Redirect back to a local path only. Paths may contain Arabic (e.g. /s/يومياتي): HTTP headers must be
+    /// ASCII, so every segment is percent-encoded (already-encoded input stays the same).
+    /// </summary>
+    public static IResult Back(string? r)
+    {
+        if (string.IsNullOrEmpty(r) || !r.StartsWith('/') || r.StartsWith("//") || r.StartsWith("/\\")) return Results.LocalRedirect("/");
+        var q = r.IndexOf('?');
+        var path = q < 0 ? r : r[..q];
+        var query = q < 0 ? "" : r[q..];
+        var encoded = string.Join('/', path.Split('/').Select(s => Uri.EscapeDataString(Uri.UnescapeDataString(s))));
+        var safeQuery = new string(query.Where(ch => ch is > ' ' and < (char)127).ToArray());
+        return Results.LocalRedirect(encoded + safeQuery);
+    }
+}
 
 internal static class DatabaseStartup
 {

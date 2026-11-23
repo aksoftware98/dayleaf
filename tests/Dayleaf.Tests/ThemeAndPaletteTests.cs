@@ -33,6 +33,19 @@ public class ThemeAndPaletteTests
     }
 
     [Fact]
+    public void No_rule_on_an_element_wrapper_class_moves_it()
+    {
+        // The wrapper of each element carries "el-{kind}". A left/right/inset rule on that class fights the inline
+        // left/top — and on right-to-left pages CSS then ignores "left", pinning the element to the right edge.
+        foreach (var kind in Enum.GetValues<ElementKind>())
+        {
+            var cls = $"el-{kind.ToString().ToLowerInvariant()}";
+            var bad = System.Text.RegularExpressions.Regex.Matches(SheetCss, $@"\.{cls}\b[^{{,]*\{{[^}}]*\b(inset|left|right)\s*:");
+            Assert.True(bad.Count == 0, $".{cls} must not set inset/left/right");
+        }
+    }
+
+    [Fact]
     public void Every_palette_id_has_a_css_class()
     {
         foreach (var ink in Palette.FixedInks) { Assert.Contains($".tx-color-{ink.Id}", SheetCss); Assert.Contains($".sh-c-{ink.Id}", SheetCss); }
