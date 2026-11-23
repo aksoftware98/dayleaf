@@ -1,0 +1,16 @@
+<div class="empty-state">
+    <div class="empty-art" aria-hidden="true"><Icon Name="@IconName" Size="30" Stroke="1.6" /></div>
+    <h3>@Title</h3>
+    @if (!string.IsNullOrEmpty(Text))
+    {
+        <p>@Text</p>
+    }
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string IconName { get; set; } = "book";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

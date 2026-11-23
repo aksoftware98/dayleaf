@@ -1,0 +1,242 @@
+﻿@page "/"
+@inject ISpaceService Spaces
+@inject ITimelineService Timeline
+@inject IPageService Pages
+@inject SeedService Seed
+@inject TimeProvider Clock
+@inject NavigationManager Nav
+@inject AppEvents Events
+@inject ToastService Toasts
+
+<PageTitle>Dayleaf</PageTitle>
+
+<div class="page-wrap">
+    <header class="home-head">
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <span class="home-date">@_now.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture)</span>
+            <h1 class="page-title">@Greeting</h1>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+            <form class="searchbox" role="search" @onsubmit="SearchAsync">
+                <Icon Name="search" Size="16" />
+                <label class="sr-only" for="home-q">Search pages</label>
+                <input id="home-q" type="search" placeholder="Search pages, dates, places…" @bind="_q" />
+            </form>
+            @if (_spaces.Count > 0)
+            {
+                <button type="button" class="btn btn-primary" @onclick="NewToday"><Icon Name="plus" Size="16" />New page for today</button>
+            }
+        </div>
+    </header>
+
+    @if (_loaded && _spaces.Count == 0)
+    {
+        <EmptyState IconName="book" Title="Create your first space" Text="A space is a notebook for one part of your life — a farm, a project, a family, a trip. Each day gets its own beautiful A4 page.">
+            <div class="empty-actions">
+                <button type="button" class="btn btn-primary" @onclick="() => _newSpace = true"><Icon Name="plus" Size="16" />Create a space</button>
+                <button type="button" class="btn btn-secondary" disabled="@_seeding" @onclick="SeedAsync"><Icon Name="sparkle" Size="16" />@(_seeding ? "Planting…" : "Open the sample notebook")</button>
+            </div>
+        </EmptyState>
+    }
+    else if (_loaded)
+    {
+        <section aria-labelledby="spaces-h" style="display:flex;flex-direction:column;gap:16px">
+            <div class="section-head">
+                <h2 id="spaces-h">Spaces</h2>
+                <span class="muted" style="font-size:13px">@_spaces.Count space@(_spaces.Count == 1 ? "" : "s") · @_spaces.Sum(s => s.PageCount) pages</span>
+            </div>
+            <div class="space-grid">
+                @foreach (var s in _spaces)
+                {
+                    var c = SpaceColors.Get(s.Space.Color);
+                    <a class="space-card" href="@($"/s/{s.Space.Slug}")">
+                        <div class="space-cover" style="background:@c.Tint">
+                            @if (s.Space.CoverMediaId is { } cover)
+                            {
+                                <img src="/media/@cover.ToString("N")" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="space-cover-text" style="color:@c.InkOnTint">@(s.Space.Description ?? "a page for every day")</span>
+                            }
+                            <span class="space-badge">@s.Space.Emoji</span>
+                        </div>
+                        <div class="space-info">
+                            <span class="space-name">@s.Space.Name</span>
+                            @if (s.PageCount == 0)
+                            {
+                                <span class="space-meta">No pages yet</span>
+                                <span class="space-cta">+ Write the first page</span>
+                            }
+                            else
+                            {
+                                <span class="space-meta">@s.PageCount page@(s.PageCount == 1 ? "" : "s") · @RangeText(s)</span>
+                                <span class="chip" style="margin-top:6px;align-self:flex-start;background:@c.Tint;color:@c.InkOnTint">@StatusText(s)</span>
+                            }
+                        </div>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <section aria-labelledby="recent-h" style="display:flex;flex-direction:column;gap:16px">
+            <div class="section-head">
+                <h2 id="recent-h">Latest pages</h2>
+                <a href="/search" style="font-size:13px;font-weight:600">Search all</a>
+            </div>
+            <div class="thumb-row">
+                @foreach (var (r, model) in _latest)
+                {
+                    <a class="thumb-link" href="@r.Url">
+                        <PageThumb Model="model" Width="180" />
+                        <span class="thumb-cap">
+                            <strong>@r.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</strong>
+                            <span>@r.SpaceName · Page @r.Number</span>
+                        </span>
+                    </a>
+                }
+                <button type="button" class="thumb-new" style="width:180px;height:255px" @onclick="NewToday">
+                    <Icon Name="edit" Size="28" Stroke="1.6" />Start today's page
+                </button>
+            </div>
+        </section>
+
+        @if (_onThisDay.Count > 0)
+        {
+            <section aria-labelledby="otd-h" style="display:flex;flex-direction:column;gap:16px">
+                <div class="section-head">
+                    <h2 id="otd-h">On this day</h2>
+                    <span class="hand" style="font-size:20px;color:var(--marigold-ink)">@_now.ToString("MMMM d", CultureInfo.InvariantCulture), in other years</span>
+                </div>
+                <div class="otd">
+                    @foreach (var r in _onThisDay)
+                    {
+                        <a class="otd-card" href="@r.Url">
+                            @if (r.PhotoIds.Count > 0)
+                            {
+                                <img src="/media/@r.PhotoIds[0].ToString("N")" alt="" style="width:64px;height:64px;border-radius:12px;object-fit:cover" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span style="width:64px;height:64px;border-radius:12px;background:var(--app-bg);display:flex;align-items:center;justify-content:center;font-size:30px">@r.SpaceEmoji</span>
+                            }
+                            <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                                <span class="otd-years">@YearsAgo(r.Date)</span>
+                                <strong style="font-family:var(--font-display);font-weight:500;font-size:17px">@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</strong>
+                                <span class="muted" style="font-size:12px">@r.SpaceName · @r.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                            </span>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
+    }
+</div>
+
+<SpaceDialog @bind-Open="_newSpace" OnSaved="OnSpaceCreated" />
+
+<Modal @bind-Open="_pickSpace" Title="Today's page goes in…">
+    <div class="picker-list">
+        @foreach (var s in _spaces)
+        {
+            <button type="button" class="picker-item" @onclick="() => OpenToday(s.Space)">
+                <span class="picker-ico">@s.Space.Emoji</span>
+                <span><strong>@s.Space.Name</strong><small>@s.PageCount pages</small></span>
+            </button>
+        }
+    </div>
+</Modal>
+
+@code {
+    private List<SpaceSummary> _spaces = [];
+    private List<(PageRef Ref, SheetModel? Model)> _latest = [];
+    private List<PageRef> _onThisDay = [];
+    private DateTimeOffset _now;
+    private string? _q;
+    private bool _loaded, _newSpace, _pickSpace, _seeding;
+
+    private string Greeting => _now.Hour switch
+    {
+        < 5 => "Still up? Write it down.",
+        < 12 => "Good morning.",
+        < 17 => "Good afternoon.",
+        < 22 => "Good evening.",
+        _ => "Good night.",
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _now = Clock.GetLocalNow();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _spaces = await Spaces.ListAsync();
+        var latest = await Timeline.GetLatestAsync(6);
+        _latest = [];
+        foreach (var r in latest) _latest.Add((r, await Pages.GetSheetModelAsync(r.Id)));
+        _onThisDay = await Timeline.OnThisDayAsync(DateOnly.FromDateTime(_now.DateTime));
+        _loaded = true;
+    }
+
+    private void SearchAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(_q)) Nav.NavigateTo($"/search?q={Uri.EscapeDataString(_q)}");
+    }
+
+    private void NewToday()
+    {
+        if (_spaces.Count == 1) OpenToday(_spaces[0].Space);
+        else _pickSpace = true;
+    }
+
+    private void OpenToday(Space s) => Nav.NavigateTo($"/s/{s.Slug}/{_now:yyyy-MM-dd}?new=1");
+
+    private async Task SeedAsync()
+    {
+        _seeding = true;
+        try
+        {
+            await Seed.SeedAsync();
+            Toasts.Success("The sample notebook is ready — have a look around.");
+            Events.NotifySpacesChanged();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Toasts.Error("Couldn't create the sample: " + ex.Message);
+        }
+        finally
+        {
+            _seeding = false;
+        }
+    }
+
+    private void OnSpaceCreated(Space s)
+    {
+        Events.NotifySpacesChanged();
+        Nav.NavigateTo($"/s/{s.Slug}");
+    }
+
+    private string RangeText(SpaceSummary s) =>
+        s.FirstDate == s.LastDate
+            ? s.LastDate!.Value.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
+            : s.FirstDate!.Value.Year == s.LastDate!.Value.Year && s.PageCount > 0 && s.LastDate.Value.Year == _now.Year
+                ? $"latest {s.LastDate.Value.ToString("MMM d", CultureInfo.InvariantCulture)}"
+                : $"{s.FirstDate.Value.ToString("MMM yyyy", CultureInfo.InvariantCulture)} → {s.LastDate.Value.ToString("MMM yyyy", CultureInfo.InvariantCulture)}";
+
+    private string StatusText(SpaceSummary s)
+    {
+        if (s.SharedCount > 0) return $"Shared · {s.SharedCount} page{(s.SharedCount == 1 ? "" : "s")} public";
+        if (s.LastActivity is not { } a) return "Quiet for now";
+        var days = (int)(_now - a).TotalDays;
+        return days switch { 0 => "Updated today", 1 => "Updated yesterday", < 30 => $"Updated {days} days ago", _ => $"Last page {a.ToLocalTime():MMM d}" };
+    }
+
+    private string YearsAgo(DateOnly d)
+    {
+        var y = _now.Year - d.Year;
+        return y == 1 ? "1 year ago" : $"{y} years ago";
+    }
+}

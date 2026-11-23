@@ -1,0 +1,36 @@
+@* Renders the real A4Sheet (first sheet only) scaled into a box: one rendering path, always correct. *@
+<div class="page-thumb" style="width:@(Width)px;height:@(H)px">
+    @if (Model is not null)
+    {
+        <div class="page-thumb-inner" style="transform:scale(@Scale.ToString("0.#####", CultureInfo.InvariantCulture))">
+            <A4Sheet Model="FirstSheetOnly" Mode="SheetMode.View" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public SheetModel? Model { get; set; }
+    [Parameter] public double Width { get; set; } = 180;
+
+    private double Scale => Width / 794d;
+    private string H => Math.Round(Width * 1123d / 794d).ToString(CultureInfo.InvariantCulture);
+
+    private SheetModel? _cached;
+    private SheetModel? _source;
+
+    private SheetModel FirstSheetOnly
+    {
+        get
+        {
+            if (ReferenceEquals(_source, Model) && _cached is not null) return _cached;
+            _source = Model;
+            _cached = new SheetModel
+            {
+                PageId = Model!.PageId, SpaceId = Model.SpaceId, SpaceName = Model.SpaceName, SpaceSlug = Model.SpaceSlug, SpaceEmoji = Model.SpaceEmoji,
+                Date = Model.Date, Title = Model.Title, Theme = Model.Theme, Tags = Model.Tags, SheetCount = 1, PageNumber = Model.PageNumber,
+                Elements = Model.Elements.Where(e => e.Element.Sheet == 0).ToList(), LinkCards = Model.LinkCards, MediaUrl = Model.MediaUrl,
+            };
+            return _cached;
+        }
+    }
+}

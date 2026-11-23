@@ -1,0 +1,203 @@
+@using System.Globalization
+@{
+    var e = Item.Element;
+    var editable = Mode == SheetMode.Edit && Item.Editable;
+    var locked = Mode == SheetMode.Edit && !Item.Editable;
+    var kind = e.Kind.ToString().ToLowerInvariant();
+}
+<div class="el el-@kind @(Selected && Mode == SheetMode.Edit ? "is-selected" : "") @(locked ? "is-locked" : "")"
+     data-el-id="@e.Id"
+     data-kind="@kind"
+     data-editable="@(editable ? "true" : null)"
+     data-aspect="@(LockAspect ? "true" : null)"
+     data-locked-label="@(locked ? Item.SectionLabel : null)"
+     style="left:@F(e.X)px;top:@F(e.Y)px;width:@F(e.W)px;height:@F(e.H)px;transform:rotate(@F(e.Rotation)deg);z-index:@(e.Z + 1000)">
+    <div class="el-body" @key="Item.Version">
+        @switch (Item.Data)
+        {
+            case TextData t:
+                <div class="el-text tx-@t.Size tx-font-@t.Font tx-color-@t.Color tx-align-@t.Align @(t.Highlight is null ? "" : "tx-hl-" + t.Highlight)"
+                     data-edit-field="html" data-placeholder="Write something…">@((MarkupString)t.Html)</div>
+                break;
+
+            case HeadingData h:
+                <div class="el-heading hd-@h.Size tx-color-@h.Color tx-align-@h.Align" data-edit-field="text" data-plain="true" data-placeholder="Heading">@h.Text</div>
+                break;
+
+            case PhotoData p:
+                <figure class="photo ph-@p.Style ph-fx-@p.Filter">
+                    <div class="ph-frame">
+                        @if (e.MediaId is { } mid)
+                        {
+                            <img src="@Model.MediaUrl(mid)" alt="@(p.Alt ?? p.Caption ?? "")" loading="lazy" draggable="false"
+                                 style="object-position:@F(p.FocusX)% @F(p.FocusY)%;transform-origin:@F(p.FocusX)% @F(p.FocusY)%;transform:scale(@F(p.Zoom))" />
+                        }
+                    </div>
+                    @if (p.Style == "polaroid")
+                    {
+                        <figcaption data-edit-field="caption" data-plain="true" data-placeholder="add a caption">@p.Caption</figcaption>
+                    }
+                    @if (p.Style == "taped")
+                    {
+                        <span class="ph-tape ph-tape-l" aria-hidden="true"></span>
+                        <span class="ph-tape ph-tape-r" aria-hidden="true"></span>
+                    }
+                </figure>
+                break;
+
+            case EmojiData em:
+                <span class="el-emoji" style="font-size:@F(Math.Min(e.W, e.H) * 0.84)px">@em.Char</span>
+                break;
+
+            case NoteData n:
+                <div class="note note-@n.Color">
+                    <div class="note-title" data-edit-field="title" data-plain="true" data-placeholder="@(Mode == SheetMode.Edit ? "Title" : "")">@n.Title</div>
+                    <div class="note-body" data-edit-field="html" data-placeholder="Jot it down…">@((MarkupString)n.Html)</div>
+                </div>
+                break;
+
+            case ChecklistData c:
+                <div class="checklist cl-@c.Color">
+                    <div class="cl-title" data-edit-field="title" data-plain="true" data-placeholder="@(Mode == SheetMode.Edit ? "List" : "")">@c.Title</div>
+                    <ul>
+                        @for (var i = 0; i < c.Items.Count; i++)
+                        {
+                            var item = c.Items[i];
+                            <li class="@(item.Done ? "done" : "")">
+                                <span class="cl-box" data-check-index="@i" role="checkbox" aria-checked="@(item.Done ? "true" : "false")" aria-label="@item.Text">
+                                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7" /></svg>
+                                </span>
+                                <span class="cl-text" data-edit-field="@($"item:{i}")" data-plain="true" data-placeholder="item">@item.Text</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                break;
+
+            case PageLinkData pl:
+                var card = e.LinkTargetPageId is { } tid && Model.LinkCards.TryGetValue(tid, out var c2) ? c2 : null;
+                var compact = e.H < 100;
+                @if (card is null)
+                {
+                    <div class="plink plink-missing @(compact ? "plink-compact" : "")">
+                        <span class="plink-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" /><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" /></svg>
+                        </span>
+                        <span class="plink-txt"><span class="plink-title">@(e.LinkTargetPageId is null ? "Link a page" : "Page not available")</span>
+                            <span class="plink-meta">@(e.LinkTargetPageId is null ? "Choose a page in the panel" : "It was deleted or isn't in this notebook")</span></span>
+                    </div>
+                }
+                else if (compact)
+                {
+                    <a class="plink plink-compact" href="@card.Url">
+                        <span class="plink-kicker">@(card.Date < Model.Date ? "← EARLIER" : "LATER →")</span>
+                        <span class="plink-txt"><span class="plink-title">@(string.IsNullOrWhiteSpace(card.Title) ? card.Date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture) : card.Title)</span>
+                            <span class="plink-meta">@card.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) · Page @card.Number</span></span>
+                    </a>
+                }
+                else
+                {
+                    <a class="plink" href="@card.Url">
+                        <span class="plink-thumb">
+                            @if (card.PhotoId is { } ph)
+                            {
+                                <img src="@Model.MediaUrl(ph)" alt="" loading="lazy" draggable="false" />
+                            }
+                            else
+                            {
+                                <span class="plink-emoji">@card.SpaceEmoji</span>
+                            }
+                        </span>
+                        <span class="plink-txt">
+                            <span class="plink-kicker">@card.SpaceEmoji @card.SpaceName.ToUpperInvariant() · PAGE @card.Number</span>
+                            <span class="plink-title">@(string.IsNullOrWhiteSpace(card.Title) ? "Untitled page" : card.Title)</span>
+                            <span class="plink-meta">@card.Date.ToString("dddd, MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                            @if (!string.IsNullOrWhiteSpace(pl.Note))
+                            {
+                                <span class="plink-note">@pl.Note</span>
+                            }
+                        </span>
+                    </a>
+                }
+                break;
+
+            case QuoteData q:
+                <div class="quote">
+                    <span class="q-label" data-edit-field="label" data-plain="true" data-placeholder="LABEL">@q.Label</span>
+                    <span class="q-text" data-edit-field="text" data-plain="true" data-placeholder="Say it in one line.">@q.Text</span>
+                </div>
+                break;
+
+            case LabelData lb:
+                <div class="hand-label tx-color-@lb.Color lb-@lb.Size" data-edit-field="text" data-plain="true" data-placeholder="a little note">@lb.Text</div>
+                break;
+
+            case DividerData d:
+                <div class="divider dv-@d.Style" aria-hidden="true">
+                    @if (d.Style == "wave")
+                    {
+                        <svg viewBox="0 0 682 24" preserveAspectRatio="none" width="100%" height="100%"><path d="M0 12 Q 17 0 34 12 T 68 12 T 102 12 T 136 12 T 170 12 T 204 12 T 238 12 T 272 12 T 306 12 T 340 12 T 374 12 T 408 12 T 442 12 T 476 12 T 510 12 T 544 12 T 578 12 T 612 12 T 646 12 T 680 12" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" /></svg>
+                    }
+                    else if (d.Style == "stars")
+                    {
+                        <span>✦ ✦ ✦</span>
+                    }
+                </div>
+                break;
+
+            case TapeData tp:
+                <div class="tape-el tp-@tp.Color tp-pat-@tp.Pattern" aria-hidden="true"></div>
+                break;
+
+            case ShapeData sh:
+                <svg class="shape sh-c-@sh.Color" viewBox="0 0 100 100" preserveAspectRatio="none" width="100%" height="100%" aria-hidden="true" style="opacity:@F(sh.Opacity)">
+                    @switch (sh.Shape)
+                    {
+                        case "circle":
+                            <ellipse cx="50" cy="50" rx="50" ry="50" />
+                            break;
+                        case "rect":
+                            <rect x="0" y="0" width="100" height="100" rx="6" />
+                            break;
+                        case "arch":
+                            <path d="M0 100 V50 A50 50 0 0 1 100 50 V100 Z" />
+                            break;
+                        case "star":
+                            <path d="M50 2 L61 38 L98 38 L68 60 L79 97 L50 75 L21 97 L32 60 L2 38 L39 38 Z" />
+                            break;
+                        default:
+                            <path d="M50 4 C72 2 96 18 97 44 C98 70 82 96 52 97 C24 98 3 80 3 52 C3 26 26 6 50 4 Z" />
+                            break;
+                    }
+                </svg>
+                break;
+        }
+    </div>
+
+    @if (Selected && editable)
+    {
+        <span class="hdl hdl-nw" data-handle="nw"></span>
+        <span class="hdl hdl-ne" data-handle="ne"></span>
+        <span class="hdl hdl-sw" data-handle="sw"></span>
+        <span class="hdl hdl-se" data-handle="se"></span>
+        @if (!LockAspect)
+        {
+            <span class="hdl hdl-e" data-handle="e"></span>
+            <span class="hdl hdl-s" data-handle="s"></span>
+        }
+        <span class="hdl-stem" aria-hidden="true"></span>
+        <span class="hdl hdl-rot" data-handle="rot" title="Drag to tilt (Shift snaps)"></span>
+        <span class="hdl-badge">@F(Math.Round(e.W)) × @F(Math.Round(e.H)) · @F(Math.Round(e.Rotation))°</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SheetElement Item { get; set; } = default!;
+    [Parameter, EditorRequired] public SheetModel Model { get; set; } = default!;
+    [Parameter] public SheetMode Mode { get; set; }
+    [Parameter] public bool Selected { get; set; }
+
+    private bool LockAspect => Item.Data is EmojiData || Item.Data is PhotoData { Style: "round" };
+
+    private static string F(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+}

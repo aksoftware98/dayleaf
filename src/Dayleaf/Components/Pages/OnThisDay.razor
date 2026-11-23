@@ -1,0 +1,57 @@
+@page "/on-this-day"
+@inject ITimelineService Timeline
+@inject IPageService Pages
+@inject TimeProvider Clock
+
+<PageTitle>On this day · Dayleaf</PageTitle>
+
+<div class="page-wrap">
+    <header style="display:flex;flex-direction:column;gap:6px">
+        <span class="home-date">@_today.ToString("MMMM d", CultureInfo.InvariantCulture)</span>
+        <h1 class="page-title">On this day</h1>
+        <p class="muted" style="margin:0">The same date, in the years before. Use the arrows to look at another day.</p>
+        <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => MoveAsync(-1)"><Icon Name="back" Size="14" />@_today.AddDays(-1).ToString("MMM d", CultureInfo.InvariantCulture)</button>
+            <button type="button" class="btn btn-ghost btn-sm" @onclick="() => MoveAsync(0)">Today</button>
+            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => MoveAsync(1)">@_today.AddDays(1).ToString("MMM d", CultureInfo.InvariantCulture)<Icon Name="forward" Size="14" /></button>
+        </div>
+    </header>
+
+    @if (_items.Count == 0)
+    {
+        <EmptyState IconName="history" Title="Nothing from this day yet" Text="Write today's page, and next year it will be waiting for you here." />
+    }
+    else
+    {
+        <div class="thumb-row" style="flex-wrap:wrap">
+            @foreach (var (r, m) in _items)
+            {
+                <a class="thumb-link" href="@r.Url">
+                    <PageThumb Model="m" Width="240" />
+                    <span class="thumb-cap">
+                        <strong class="hand" style="font-size:22px;color:var(--marigold-ink)">@(_today.Year - r.Date.Year == 1 ? "1 year ago" : $"{_today.Year - r.Date.Year} years ago")</strong>
+                        <span>@r.SpaceEmoji @r.SpaceName · @r.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                    </span>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private DateOnly _today;
+    private List<(PageRef, SheetModel?)> _items = [];
+
+    protected override async Task OnInitializedAsync() => await MoveAsync(0);
+
+    private async Task MoveAsync(int days)
+    {
+        var now = DateOnly.FromDateTime(Clock.GetLocalNow().DateTime);
+        _today = days == 0 ? now : _today.AddDays(days);
+        // Show earlier years relative to the real current year.
+        var target = new DateOnly(now.Year, _today.Month, Math.Min(_today.Day, DateTime.DaysInMonth(now.Year, _today.Month)));
+        var refs = await Timeline.OnThisDayAsync(target);
+        _items = [];
+        foreach (var r in refs) _items.Add((r, await Pages.GetSheetModelAsync(r.Id)));
+    }
+}

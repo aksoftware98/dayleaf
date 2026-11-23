@@ -1,0 +1,286 @@
+@* Properties of the selected element. Data edits go out through OnData, geometry through OnTransform. *@
+@{
+    var e = Item.Element;
+}
+<div class="insp-card">
+    <div class="insp-head">
+        <span class="insp-head-ico">
+            @if (Item.Data is PhotoData && e.MediaId is { } mid)
+            {
+                <img src="/media/@mid.ToString("N")" alt="" />
+            }
+            else if (Item.Data is EmojiData em)
+            {
+                <span style="font-size:24px">@em.Char</span>
+            }
+            else
+            {
+                <Icon Name="@IconFor(e.Kind)" />
+            }
+        </span>
+        <span>
+            <strong>@NameFor(e.Kind)</strong>
+            <small>@Item.SectionLabel section@(Item.Editable ? "" : " · locked")</small>
+        </span>
+    </div>
+
+    @if (!Item.Editable)
+    {
+        <div class="lock-explain">
+            <Icon Name="lock" />
+            <span>This belongs to the <strong>@Item.SectionLabel</strong> section, which is locked. Locked content stays exactly as it was written — you can always add something new in another section.</span>
+        </div>
+    }
+    else
+    {
+        @switch (Item.Data)
+        {
+            case TextData t:
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnEditText.InvokeAsync()"><Icon Name="edit" Size="14" />Edit text (or double-click)</button>
+                <div class="field">Size
+                    <div class="seg">@foreach (var (v, l) in new[] { ("s", "S"), ("m", "M"), ("l", "L"), ("xl", "XL") }) { <button type="button" aria-pressed="@(P(t.Size == v))" @onclick="() => Set(t, x => x.Size = v)">@l</button> }</div>
+                </div>
+                <div class="field">Font
+                    <div class="seg">@foreach (var (v, l) in new[] { ("body", "Body"), ("display", "Display"), ("hand", "Hand"), ("mono", "Mono") }) { <button type="button" aria-pressed="@(P(t.Font == v))" @onclick="() => Set(t, x => x.Font = v)">@l</button> }</div>
+                </div>
+                <div class="field">Ink
+                    <InkSwatches Value="@t.Color" Theme="Theme" ValueChanged="v => Set(t, x => x.Color = v)" />
+                </div>
+                <div class="field-row">
+                    <div class="field">Align
+                        <div class="seg">@foreach (var v in new[] { "left", "center", "right" }) { <button type="button" aria-pressed="@(P(t.Align == v))" @onclick="() => Set(t, x => x.Align = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                    </div>
+                </div>
+                <div class="field">Highlight
+                    <div class="seg">
+                        <button type="button" aria-pressed="@(P(t.Highlight is null))" @onclick="() => Set(t, x => x.Highlight = null)">None</button>
+                        <button type="button" aria-pressed="@(P(t.Highlight == "marker"))" @onclick="() => Set(t, x => x.Highlight = Marker)">Marker</button>
+                        <button type="button" aria-pressed="@(P(t.Highlight == "box"))" @onclick="() => Set(t, x => x.Highlight = Box)">Box</button>
+                    </div>
+                </div>
+                break;
+
+            case HeadingData h:
+                <label class="field">Text<input class="input" value="@h.Text" @onchange="v => Set(h, x => x.Text = StrOrEmpty(v))" /></label>
+                <div class="field">Size
+                    <div class="seg">@foreach (var (v, l) in new[] { ("m", "M"), ("l", "L"), ("xl", "XL") }) { <button type="button" aria-pressed="@(P(h.Size == v))" @onclick="() => Set(h, x => x.Size = v)">@l</button> }</div>
+                </div>
+                <div class="field">Ink<InkSwatches Value="@h.Color" Theme="Theme" ValueChanged="v => Set(h, x => x.Color = v)" /></div>
+                <div class="field">Align
+                    <div class="seg">@foreach (var v in new[] { "left", "center", "right" }) { <button type="button" aria-pressed="@(P(h.Align == v))" @onclick="() => Set(h, x => x.Align = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                </div>
+                break;
+
+            case PhotoData p:
+                <div class="field">Sticker style
+                    <div class="seg">@foreach (var (v, l) in PhotoStyles) { <button type="button" aria-pressed="@(P(p.Style == v))" @onclick="() => SetPhotoStyle(p, v)">@l</button> }</div>
+                </div>
+                <div class="field">Filter
+                    <div class="seg">@foreach (var v in new[] { "none", "warm", "cool", "mono", "fade", "vivid" }) { <button type="button" aria-pressed="@(P(p.Filter == v))" @onclick="() => Set(p, x => x.Filter = v)">@(v == "none" ? "Off" : v[..1].ToUpperInvariant() + v[1..])</button> }</div>
+                </div>
+                <label class="field">
+                    <span class="slider-label">Crop zoom<span>@p.Zoom.ToString("0.0", CultureInfo.InvariantCulture)×</span></span>
+                    <input class="range" type="range" min="1" max="4" step="0.1" value="@p.Zoom.ToString(CultureInfo.InvariantCulture)" @onchange="v => Set(p, x => x.Zoom = Dbl(v, 1))" />
+                </label>
+                <div class="field-row">
+                    <label class="field">
+                        <span class="slider-label">Focus ←→<span>@((int)p.FocusX)%</span></span>
+                        <input class="range" type="range" min="0" max="100" value="@((int)p.FocusX)" @onchange="v => Set(p, x => x.FocusX = Dbl(v, 50))" />
+                    </label>
+                    <label class="field">
+                        <span class="slider-label">Focus ↑↓<span>@((int)p.FocusY)%</span></span>
+                        <input class="range" type="range" min="0" max="100" value="@((int)p.FocusY)" @onchange="v => Set(p, x => x.FocusY = Dbl(v, 50))" />
+                    </label>
+                </div>
+                <label class="field">Caption @if (p.Style != "polaroid") { <span class="hint">shown on Polaroid</span> }
+                    <input class="input hand" value="@p.Caption" maxlength="200" placeholder="what's happening here?" @onchange="v => Set(p, x => x.Caption = Str(v))" />
+                </label>
+                <label class="field">Description for screen readers
+                    <input class="input" value="@p.Alt" maxlength="300" placeholder="e.g. Our red tractor between the trees" @onchange="v => Set(p, x => x.Alt = Str(v))" />
+                </label>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnReplacePhoto.InvokeAsync()"><Icon Name="image-replace" Size="14" />Replace photo</button>
+                break;
+
+            case EmojiData em:
+                <div class="field">Sticker
+                    <div class="emoji-pick">
+                        @foreach (var s in EmojiCatalog.All.Take(60))
+                        {
+                            <button type="button" aria-label="@s.Name" aria-pressed="@(P(em.Char == s.Char))" @onclick="() => Set(em, x => x.Char = s.Char)">@s.Char</button>
+                        }
+                    </div>
+                </div>
+                break;
+
+            case NoteData n:
+                <label class="field">Title<input class="input hand" value="@n.Title" maxlength="120" @onchange="v => Set(n, x => x.Title = Str(v))" /></label>
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnEditText.InvokeAsync()"><Icon Name="edit" Size="14" />Edit note text</button>
+                <div class="field">Paper<NoteColors Value="@n.Color" ValueChanged="v => Set(n, x => x.Color = v)" /></div>
+                break;
+
+            case ChecklistData c:
+                <label class="field">Title<input class="input hand" value="@c.Title" maxlength="120" @onchange="v => Set(c, x => x.Title = Str(v))" /></label>
+                <div class="field">Items
+                    @for (var i = 0; i < c.Items.Count; i++)
+                    {
+                        var idx = i;
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <input type="checkbox" checked="@c.Items[idx].Done" aria-label="Done" style="width:18px;height:18px;accent-color:var(--forest)" @onchange="v => Set(c, x => x.Items[idx].Done = v.Value is true)" />
+                            <input class="input" style="min-height:38px" value="@c.Items[idx].Text" maxlength="200" aria-label="@($"Item {idx + 1}")" @onchange="v => Set(c, x => x.Items[idx].Text = StrOrEmpty(v))" />
+                            <button type="button" class="icon-btn" style="width:38px;height:38px" aria-label="Remove item" @onclick="() => Set(c, x => x.Items.RemoveAt(idx))"><Icon Name="close" Size="14" /></button>
+                        </div>
+                    }
+                    <form style="display:flex;gap:6px" @onsubmit="() => AddItem(c)">
+                        <input class="input" style="min-height:38px" placeholder="Add an item…" aria-label="New item" @bind="_newItem" @bind:event="oninput" maxlength="200" />
+                        <button type="submit" class="btn btn-secondary btn-sm" disabled="@string.IsNullOrWhiteSpace(_newItem)">Add</button>
+                    </form>
+                </div>
+                <div class="field">Paper<NoteColors Value="@c.Color" ValueChanged="v => Set(c, x => x.Color = v)" IncludePaper="true" /></div>
+                break;
+
+            case PageLinkData pl:
+                <button type="button" class="btn btn-secondary btn-sm" @onclick="() => OnPickLink.InvokeAsync()"><Icon Name="link" Size="14" />@(e.LinkTargetPageId is null ? "Choose a page" : "Link a different page")</button>
+                <label class="field">Note<input class="input hand" value="@pl.Note" maxlength="200" placeholder="why this page matters" @onchange="v => Set(pl, x => x.Note = Str(v))" /></label>
+                <span class="hint">Make it shorter than 100px for a compact “← earlier” link.</span>
+                break;
+
+            case QuoteData q:
+                <label class="field">Label<input class="input" value="@q.Label" maxlength="60" @onchange="v => Set(q, x => x.Label = StrOrEmpty(v))" /></label>
+                <label class="field">Quote<textarea class="textarea" maxlength="500" @onchange="v => Set(q, x => x.Text = StrOrEmpty(v))">@q.Text</textarea></label>
+                break;
+
+            case LabelData lb:
+                <label class="field">Text<input class="input hand" value="@lb.Text" maxlength="200" @onchange="v => Set(lb, x => x.Text = StrOrEmpty(v))" /></label>
+                <div class="field">Size
+                    <div class="seg">@foreach (var (v, l) in new[] { ("s", "S"), ("m", "M"), ("l", "L") }) { <button type="button" aria-pressed="@(P(lb.Size == v))" @onclick="() => Set(lb, x => x.Size = v)">@l</button> }</div>
+                </div>
+                <div class="field">Ink<InkSwatches Value="@lb.Color" Theme="Theme" ValueChanged="v => Set(lb, x => x.Color = v)" /></div>
+                break;
+
+            case DividerData d:
+                <div class="field">Style
+                    <div class="seg">@foreach (var v in new[] { "line", "dots", "wave", "stars" }) { <button type="button" aria-pressed="@(P(d.Style == v))" @onclick="() => Set(d, x => x.Style = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                </div>
+                break;
+
+            case TapeData tp:
+                <div class="field">Color
+                    <div class="seg">@foreach (var v in new[] { "theme", "yellow", "pink", "mint", "sky", "lilac" }) { <button type="button" aria-pressed="@(P(tp.Color == v))" @onclick="() => Set(tp, x => x.Color = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                </div>
+                <div class="field">Pattern
+                    <div class="seg">@foreach (var v in new[] { "plain", "stripes", "dots", "grid" }) { <button type="button" aria-pressed="@(P(tp.Pattern == v))" @onclick="() => Set(tp, x => x.Pattern = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                </div>
+                break;
+
+            case ShapeData sh:
+                <div class="field">Shape
+                    <div class="seg">@foreach (var v in new[] { "blob", "circle", "rect", "arch", "star" }) { <button type="button" aria-pressed="@(P(sh.Shape == v))" @onclick="() => Set(sh, x => x.Shape = v)">@v[..1].ToUpperInvariant()@v[1..]</button> }</div>
+                </div>
+                <div class="field">Color
+                    <div class="seg">@foreach (var (v, l) in new[] { ("accent", "Accent"), ("accent2", "Accent 2"), ("chip", "Soft"), ("note", "Note"), ("ink", "Ink") }) { <button type="button" aria-pressed="@(P(sh.Color == v))" @onclick="() => Set(sh, x => x.Color = v)">@l</button> }</div>
+                </div>
+                <label class="field">
+                    <span class="slider-label">Opacity<span>@((int)(sh.Opacity * 100))%</span></span>
+                    <input class="range" type="range" min="5" max="100" value="@((int)(sh.Opacity * 100))" @onchange="v => Set(sh, x => x.Opacity = Dbl(v, 35) / 100)" />
+                </label>
+                break;
+        }
+
+        <label class="field">
+            <span class="slider-label">Size<span>@Math.Round(e.W) × @Math.Round(e.H) px</span></span>
+            <input class="range" type="range" min="16" max="760" value="@((int)e.W)" @oninput="v => Resize(v, false)" @onchange="v => Resize(v, true)" />
+        </label>
+        <label class="field">
+            <span class="slider-label">Tilt<span>@Math.Round(e.Rotation)°</span></span>
+            <input class="range" type="range" min="-20" max="20" step="0.5" value="@Math.Clamp(e.Rotation, -20, 20).ToString(CultureInfo.InvariantCulture)" @oninput="v => Tilt(v, false)" @onchange="v => Tilt(v, true)" />
+        </label>
+
+        <div class="insp-actions">
+            <button type="button" aria-label="Bring to front" title="Bring to front" @onclick="() => OnAction.InvokeAsync(ElementAction.Front)"><Icon Name="front" /></button>
+            <button type="button" aria-label="Send to back" title="Send to back" @onclick="() => OnAction.InvokeAsync(ElementAction.Back)"><Icon Name="back-layer" /></button>
+            <button type="button" aria-label="Duplicate" title="Duplicate (Ctrl+D)" @onclick="() => OnAction.InvokeAsync(ElementAction.Duplicate)"><Icon Name="copy" /></button>
+            <button type="button" class="danger" aria-label="Delete" title="Delete (Del)" @onclick="() => OnAction.InvokeAsync(ElementAction.Delete)"><Icon Name="trash" /></button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SheetElement Item { get; set; } = default!;
+    [Parameter] public string Theme { get; set; } = Themes.Default;
+    [Parameter] public EventCallback<ElementData> OnData { get; set; }
+    [Parameter] public EventCallback<(double W, double H, double Rot, bool Commit)> OnTransform { get; set; }
+    [Parameter] public EventCallback<ElementAction> OnAction { get; set; }
+    [Parameter] public EventCallback OnEditText { get; set; }
+    [Parameter] public EventCallback OnReplacePhoto { get; set; }
+    [Parameter] public EventCallback OnPickLink { get; set; }
+
+    private string? _newItem;
+
+    private static readonly (string, string)[] PhotoStyles = [("plain", "Plain"), ("sticker", "Die-cut"), ("polaroid", "Polaroid"), ("taped", "Taped"), ("round", "Round")];
+
+    private static string P(bool b) => b ? "true" : "false";
+    private static string? Str(ChangeEventArgs v) => v.Value?.ToString();
+    private static string StrOrEmpty(ChangeEventArgs v) => v.Value?.ToString() ?? string.Empty;
+    private const string Marker = "marker", Box = "box";
+    private static double Dbl(ChangeEventArgs v, double fallback) =>
+        double.TryParse(v.Value?.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : fallback;
+
+    private Task Set<T>(T data, Action<T> change) where T : ElementData
+    {
+        var copy = (T)data.Copy();
+        change(copy);
+        return OnData.InvokeAsync(copy);
+    }
+
+    private async Task SetPhotoStyle(PhotoData p, string style)
+    {
+        await Set(p, x => x.Style = style);
+        var e = Item.Element;
+        if (style == "round" && Math.Abs(e.W - e.H) > 0.5)
+        {
+            var side = Math.Min(e.W, e.H);
+            await OnTransform.InvokeAsync((side, side, e.Rotation, true));
+        }
+        else if (style == "polaroid" && e.H < e.W * 0.8)
+        {
+            await OnTransform.InvokeAsync((e.W, Math.Round(e.W * 0.92), e.Rotation, true));
+        }
+    }
+
+    private async Task AddItem(ChecklistData c)
+    {
+        if (string.IsNullOrWhiteSpace(_newItem)) return;
+        var text = _newItem.Trim();
+        _newItem = null;
+        await Set(c, x => x.Items.Add(new ChecklistItem { Text = text }));
+    }
+
+    private Task Resize(ChangeEventArgs v, bool commit)
+    {
+        var e = Item.Element;
+        var w = Dbl(v, e.W);
+        var h = e.W > 0 ? e.H * w / e.W : e.H;
+        if (Item.Data is TextData or QuoteData or NoteData or ChecklistData or HeadingData) h = e.H; // text boxes keep height
+        return OnTransform.InvokeAsync((w, h, e.Rotation, commit));
+    }
+
+    private Task Tilt(ChangeEventArgs v, bool commit)
+    {
+        var e = Item.Element;
+        return OnTransform.InvokeAsync((e.W, e.H, Dbl(v, e.Rotation), commit));
+    }
+
+    public static string IconFor(ElementKind k) => k switch
+    {
+        ElementKind.Text => "text", ElementKind.Heading => "heading", ElementKind.Photo => "photo", ElementKind.Emoji => "emoji",
+        ElementKind.Note => "note", ElementKind.Checklist => "check", ElementKind.PageLink => "link", ElementKind.Quote => "quote",
+        ElementKind.Label => "label", ElementKind.Divider => "divider", ElementKind.Tape => "tape", ElementKind.Shape => "shape", _ => "file",
+    };
+
+    public static string NameFor(ElementKind k) => k switch
+    {
+        ElementKind.Text => "Text", ElementKind.Heading => "Heading", ElementKind.Photo => "Photo sticker", ElementKind.Emoji => "Sticker",
+        ElementKind.Note => "Sticky note", ElementKind.Checklist => "Checklist", ElementKind.PageLink => "Page link", ElementKind.Quote => "Quote",
+        ElementKind.Label => "Handwritten label", ElementKind.Divider => "Divider", ElementKind.Tape => "Washi tape", ElementKind.Shape => "Shape", _ => "Element",
+    };
+}

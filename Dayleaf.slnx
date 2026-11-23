@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Dayleaf/Dayleaf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Dayleaf.E2E/Dayleaf.E2E.csproj" />
+    <Project Path="tests/Dayleaf.Tests/Dayleaf.Tests.csproj" />
+  </Folder>
+</Solution>

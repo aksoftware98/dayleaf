@@ -1,0 +1,16 @@
+@{
+    var t = Themes.Get(Theme);
+}
+<div class="swatches" role="group" aria-label="Ink color">
+    @foreach (var (id, name, hex) in new[] { ("ink", "Ink", t.Ink), ("accent", "Accent", t.Accent), ("accent2", "Accent 2", t.Accent2), ("muted", "Muted", "#8A8F86") })
+    {
+        <button type="button" class="swatch" style="background:@hex" aria-label="@name" title="@name" aria-pressed="@(Value == id ? "true" : "false")"
+                @onclick="() => ValueChanged.InvokeAsync(id)"></button>
+    }
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = "ink";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Theme { get; set; } = Themes.Default;
+}

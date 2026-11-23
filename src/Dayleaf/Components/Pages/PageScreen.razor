@@ -1,0 +1,1013 @@
+@page "/s/{Slug}/{DateText}"
+@layout BareLayout
+@implements IAsyncDisposable
+@inject ISpaceService Spaces
+@inject IPageService Pages
+@inject ITimelineService Timeline
+@inject IMediaService Media
+@inject SectionLockPolicy Policy
+@inject TimeProvider Clock
+@inject NavigationManager Nav
+@inject ToastService Toasts
+@inject IJSRuntime JS
+
+<PageTitle>@PageTitleText</PageTitle>
+
+@if (_notFound)
+{
+    <div class="page-wrap"><EmptyState IconName="search" Title="That page isn't here" Text="The space or date in the address doesn't exist."><a class="btn btn-primary" href="/">Back to spaces</a></EmptyState></div>
+}
+else if (_space is not null)
+{
+    <div class="ed">
+        <header class="ed-top">
+            <div class="ed-top-left">
+                <a class="icon-btn" href="@($"/s/{_space.Slug}?d={_date:yyyy-MM-dd}")" aria-label="@($"Back to {_space.Name}")"><Icon Name="back" /></a>
+                <div class="ed-title">
+                    <small>@_space.Emoji @_space.Name@(_model is null ? "" : $" · Page {_model.PageNumber}")</small>
+                    <strong>@(_model is null ? "New page" : string.IsNullOrWhiteSpace(_model.Title) ? "Untitled page" : _model.Title)</strong>
+                </div>
+                <label class="date-pill" title="@(MetaEditable ? "Change the date" : "The date is locked")">
+                    <Icon Name="calendar" Size="16" />@_date.ToString("ddd, MMM d, yyyy", CultureInfo.InvariantCulture)<Icon Name="down" Size="14" />
+                    <input type="date" value="@_date.ToString("yyyy-MM-dd")" aria-label="Page date" @onchange="OnDateChanged" />
+                </label>
+            </div>
+            <div class="toolbar">
+                @if (_model is not null)
+                {
+                    <span class="save-state @_saveClass" role="status">
+                        @if (_saveClass == "saving") { <Icon Name="clock" Size="14" /><span>Saving…</span> }
+                        else if (_saveClass == "err") { <Icon Name="close" Size="14" /><span>Not saved</span> }
+                        else if (CanEdit) { <Icon Name="tick" Size="14" /><span>Saved</span> }
+                        else { <Icon Name="lock" Size="14" /><span>Locked</span> }
+                    </span>
+                    @if (CanEdit)
+                    {
+                        <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled="@(_undo.Count == 0)" @onclick="UndoAsync"><Icon Name="undo" /></button>
+                    }
+                    <a class="btn btn-secondary" href="@($"/print/page/{_model.PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Print A4</a>
+                    <button type="button" class="btn btn-primary" @onclick="() => _share = true"><Icon Name="link" Size="16" />Share</button>
+                }
+            </div>
+        </header>
+
+        @if (_page is null)
+        {
+            <div class="page-wrap">
+                <EmptyState IconName="edit" Title="@($"No page for {_date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)} yet")"
+                            Text="Every date can have one page in this space. Backfilling is welcome — write about a day long gone.">
+                    <div class="empty-actions">
+                        <button type="button" class="btn btn-primary" @onclick="CreateAsync"><Icon Name="plus" Size="16" />Create this page</button>
+                        <a class="btn btn-secondary" href="@($"/s/{_space.Slug}")">Back to the timeline</a>
+                    </div>
+                </EmptyState>
+            </div>
+        }
+        else if (_model is not null)
+        {
+            <div class="ed-body">
+                @if (CanEdit)
+                {
+                    <nav class="rail" aria-label="Insert">
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Text)"><Icon Name="text" Size="22" />Text</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Heading)"><Icon Name="heading" Size="22" />Heading</button>
+                        <button type="button" class="rail-btn" @onclick="PickPhotosAsync"><Icon Name="photo" Size="22" />Photo</button>
+                        <button type="button" class="rail-btn" @onclick="ShowStickers"><Icon Name="emoji" Size="22" />Sticker</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Note)"><Icon Name="note" Size="22" />Note</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Checklist)"><Icon Name="check" Size="22" />Checklist</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Quote)"><Icon Name="quote" Size="22" />Quote</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Label)"><Icon Name="label" Size="22" />Label</button>
+                        <button type="button" class="rail-btn" @onclick="() => { _linkForSelected = false; _pickLink = true; }"><Icon Name="link" Size="22" />Link page</button>
+                        <div class="rail-sep"></div>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Tape)"><Icon Name="tape" Size="22" />Tape</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Shape)"><Icon Name="shape" Size="22" />Shape</button>
+                        <button type="button" class="rail-btn" @onclick="() => InsertDefaultAsync(ElementKind.Divider)"><Icon Name="divider" Size="22" />Divider</button>
+                    </nav>
+                }
+
+                <section class="canvas-col" aria-label="Page canvas" @ref="_canvasCol">
+                    @if (Selected is null && !CanEdit)
+                    {
+                        <div class="view-cta">
+                            <strong style="display:flex;gap:8px;align-items:center"><Icon Name="lock" Size="16" />This page is locked</strong>
+                            <p>What's written stays written. You can't change it, but you can always add to it.</p>
+                            <button type="button" class="btn btn-primary btn-sm" @onclick="AddSectionAsync"><Icon Name="plus" Size="14" />Add a section</button>
+                        </div>
+                    }
+                    <div class="floatbar-slot">
+                    @if (Selected is { } sel)
+                    {
+                        @if (!sel.Editable)
+                        {
+                            <div class="floatbar lockbar" role="toolbar" aria-label="Locked element">
+                                <span class="fb-label" style="display:flex;gap:6px;align-items:center"><Icon Name="lock" Size="14" />Locked · @sel.SectionLabel section</span>
+                            </div>
+                        }
+                        else if (sel.Data is PhotoData ph)
+                        {
+                            <div class="floatbar" role="toolbar" aria-label="Photo sticker">
+                                <span class="fb-label">Photo sticker</span>
+                                @foreach (var (v, l) in new[] { ("sticker", "Die-cut"), ("polaroid", "Polaroid"), ("taped", "Taped"), ("round", "Round"), ("plain", "Plain") })
+                                {
+                                    <button type="button" aria-pressed="@(ph.Style == v ? "true" : "false")" @onclick="() => SetPhotoStyleAsync(sel, v)">@l</button>
+                                }
+                                <span class="sep"></span>
+                                <button type="button" class="fb-icon" aria-label="Rotate 15°" title="Rotate 15°" @onclick="() => RotateByAsync(sel, 15)"><Icon Name="rotate" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="Crop zoom" title="Crop: zoom in" @onclick="() => CropAsync(sel, ph)"><Icon Name="crop" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="Bring to front" title="Bring to front" @onclick="() => ActionAsync(ElementAction.Front)"><Icon Name="front" Size="16" /></button>
+                                <button type="button" class="fb-icon fb-danger" aria-label="Delete" title="Delete" @onclick="() => ActionAsync(ElementAction.Delete)"><Icon Name="trash" Size="16" /></button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="floatbar" role="toolbar" aria-label="@ElementInspector.NameFor(sel.Element.Kind)">
+                                <span class="fb-label">@ElementInspector.NameFor(sel.Element.Kind)</span>
+                                @if (sel.Data is TextData or NoteData or QuoteData or LabelData or HeadingData or ChecklistData)
+                                {
+                                    <button type="button" @onclick="() => BeginEditAsync(sel.Element.Id)"><Icon Name="edit" Size="14" />Edit</button>
+                                }
+                                <button type="button" class="fb-icon" aria-label="Rotate 5°" title="Tilt 5°" @onclick="() => RotateByAsync(sel, 5)"><Icon Name="rotate" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="Duplicate" title="Duplicate" @onclick="() => ActionAsync(ElementAction.Duplicate)"><Icon Name="copy" Size="16" /></button>
+                                <button type="button" class="fb-icon" aria-label="Bring to front" title="Bring to front" @onclick="() => ActionAsync(ElementAction.Front)"><Icon Name="front" Size="16" /></button>
+                                <button type="button" class="fb-icon fb-danger" aria-label="Delete" title="Delete" @onclick="() => ActionAsync(ElementAction.Delete)"><Icon Name="trash" Size="16" /></button>
+                            </div>
+                        }
+                    }
+                    </div>
+
+                    <div class="canvas">
+                        <div class="canvas-zoom" @ref="_canvasRoot">
+                            <A4Sheet Model="_model" Mode="@(CanEdit ? SheetMode.Edit : SheetMode.View)" SelectedId="_selectedId" MetaEditable="MetaEditable" TitleVersion="_titleVersion" />
+                        </div>
+                    </div>
+
+                    <div class="canvas-bar">
+                        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_pn?.Prev is null)" @onclick="() => Go(_pn?.Prev)"><Icon Name="back" Size="14" />@(_pn?.Prev?.Date.ToString("MMM d", CultureInfo.InvariantCulture) ?? "First")</button>
+                        <span style="font-size:13px;font-weight:600;padding:0 6px">@_date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) · Page @_model.PageNumber</span>
+                        <button type="button" class="btn btn-ghost btn-sm" disabled="@(_pn?.Next is null)" @onclick="() => Go(_pn?.Next)">@(_pn?.Next?.Date.ToString("MMM d", CultureInfo.InvariantCulture) ?? "Latest")<Icon Name="forward" Size="14" /></button>
+                        <span class="sep"></span>
+                        <button type="button" class="icon-btn borderless" style="width:36px;height:36px" aria-label="Zoom out" @onclick="@(() => ZoomAsync("out"))"><Icon Name="zoom-out" Size="16" /></button>
+                        <button type="button" class="zoom-val btn-ghost" style="border:0;background:none;cursor:pointer" title="Fit to window" @onclick="@(() => ZoomAsync("fit"))">@_zoom%</button>
+                        <button type="button" class="icon-btn borderless" style="width:36px;height:36px" aria-label="Zoom in" @onclick="@(() => ZoomAsync("in"))"><Icon Name="zoom-in" Size="16" /></button>
+                        @if (CanEdit)
+                        {
+                            <span class="sep"></span>
+                            <button type="button" class="btn btn-ghost btn-sm" @onclick="AddSheetAsync"><Icon Name="sheet-plus" Size="14" />Add sheet</button>
+                            @if (_model.SheetCount > 1 && !_model.Elements.Any(e => e.Element.Sheet == _model.SheetCount - 1))
+                            {
+                                <button type="button" class="btn btn-ghost btn-sm" @onclick="RemoveSheetAsync"><Icon Name="trash" Size="14" />Remove empty sheet</button>
+                            }
+                        }
+                    </div>
+                    <p class="hint" style="margin:0;text-align:center">
+                        @if (CanEdit)
+                        {
+                            <span>Drag to move · corners resize · round handle tilts · double-click text to write · drop or paste photos · ← → change day</span>
+                        }
+                        else
+                        {
+                            <span>← → move between days · click anything to see which section it belongs to</span>
+                        }
+                    </p>
+                    <InputFile @ref="_fileInput" multiple accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" OnChange="OnFilesAsync" aria-label="Add photos" tabindex="-1" />
+                    <InputFile @ref="_replaceInput" accept="image/jpeg,image/png,image/webp,image/gif" class="sr-only" OnChange="OnReplaceAsync" aria-label="Replace photo" tabindex="-1" />
+                </section>
+
+                <aside class="inspector" aria-label="Inspector">
+                    @if (Selected is { } item)
+                    {
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <span class="smallcaps">Selected</span>
+                            <button type="button" class="btn btn-ghost btn-sm" @onclick="() => SelectAsync(null)">Done</button>
+                        </div>
+                        <ElementInspector Item="item" Theme="@_model.Theme"
+                                          OnData="d => UpdateDataAsync(item, d)"
+                                          OnTransform="t => InspectorTransformAsync(item, t)"
+                                          OnAction="ActionAsync"
+                                          OnEditText="() => BeginEditAsync(item.Element.Id)"
+                                          OnReplacePhoto="PickReplaceAsync"
+                                          OnPickLink="() => { _linkForSelected = true; _pickLink = true; }" />
+                    }
+                    else
+                    {
+                        <div class="insp-group">
+                            <span class="smallcaps">Page theme</span>
+                            <ThemePicker Value="@_model.Theme" ValueChanged="SetThemeAsync" Disabled="!MetaEditable" />
+                        </div>
+
+                        <div class="insp-group">
+                            <span class="smallcaps">Title & tags</span>
+                            @if (MetaEditable)
+                            {
+                                <input class="input" value="@_model.Title" placeholder="Name this day…" maxlength="300" aria-label="Page title" @onchange="SetTitleAsync" />
+                                <div class="tag-input">
+                                    @foreach (var t in _model.Tags)
+                                    {
+                                        <span class="chip chip-outline">@t<button type="button" class="chip-x" aria-label="@($"Remove {t}")" @onclick="() => RemoveTagAsync(t)"><Icon Name="close" Size="12" /></button></span>
+                                    }
+                                    @if (_model.Tags.Count < 8)
+                                    {
+                                        <input placeholder="Add a tag, press Enter" aria-label="Add a tag" @bind="_newTag" @bind:event="oninput" @onkeydown="TagKeyAsync" maxlength="40" />
+                                    }
+                                </div>
+                                <div class="tag-suggest">
+                                    @foreach (var s in TagSuggestions.Where(s => !_model.Tags.Contains(s)).Take(6))
+                                    {
+                                        <button type="button" @onclick="() => AddTagAsync(s)">+ @s</button>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="lock-explain"><Icon Name="lock" /><span>The title, date, theme and tags locked together with this page's first section.</span></div>
+                                @if (_model.Tags.Count > 0)
+                                {
+                                    <div style="display:flex;flex-wrap:wrap;gap:6px">@foreach (var t in _model.Tags) { <span class="chip chip-outline">@t</span> }</div>
+                                }
+                            }
+                        </div>
+
+                        <div class="insp-group">
+                            <span class="smallcaps">Sections</span>
+                            <SectionPanel Sections="_page.Sections" Policy="Policy" Now="_now" ActiveSectionId="ActiveSectionId" Counts="SectionCounts"
+                                          OnSubmit="SubmitAsync" OnAdd="AddSectionAsync" OnRename="RenameSectionAsync" OnDelete="DeleteSectionAsync" />
+                            <span class="hint">Submitted sections stay editable for @Policy.EditWindow.TotalHours hours, then lock forever.</span>
+                        </div>
+
+                        @if (CanEdit)
+                        {
+                            <div id="sticker-tray">
+                                <StickerTray OnPick="AddStickerAsync" />
+                            </div>
+                        }
+
+                        @if (_backlinks.Count > 0)
+                        {
+                            <div class="insp-group">
+                                <span class="smallcaps">Linked from</span>
+                                <div class="backlinks">
+                                    @foreach (var b in _backlinks)
+                                    {
+                                        <a class="backlink" href="@b.Url"><span style="font-size:18px">@b.SpaceEmoji</span><span><strong>@(string.IsNullOrWhiteSpace(b.Title) ? "Untitled" : b.Title)</strong><br /><span class="muted">@b.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span></span></a>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="insp-group">
+                            <span class="smallcaps">This page</span>
+                            <button type="button" class="btn btn-secondary" @onclick="() => _share = true"><Icon Name="share" Size="16" />Share & export</button>
+                            @if (CanDeletePage)
+                            {
+                                <button type="button" class="btn btn-ghost" style="color:var(--danger)" @onclick="() => _confirmDelete = true"><Icon Name="trash" Size="16" />Delete page</button>
+                            }
+                        </div>
+                    }
+                </aside>
+            </div>
+
+            <ShareDialog @bind-Open="_share" PageId="_page.Id" ShareToken="@_page.ShareToken" ShareTokenChanged="t => _page.ShareToken = t" />
+            <PagePickerDialog @bind-Open="_pickLink" ExcludePageId="_page.Id" OnPicked="OnLinkPickedAsync" />
+
+            <Modal @bind-Open="_askSection" Title="Where should this go?">
+                <ChildContent>
+                    <p style="margin:0">There's no open draft on this page. <strong>@_graceSection?.Label</strong> was submitted but is still editable for @(_graceSection is null ? "" : SectionLockPolicy.FormatSpan(Policy.TimeLeft(_graceSection, _now) ?? TimeSpan.Zero)).</p>
+                </ChildContent>
+                <Footer>
+                    <button type="button" class="btn btn-secondary" @onclick="() => AnswerSection(false)">Start a new section</button>
+                    <button type="button" class="btn btn-primary" @onclick="() => AnswerSection(true)">Add to @_graceSection?.Label</button>
+                </Footer>
+            </Modal>
+
+            <Modal @bind-Open="_confirmDelete" Title="Delete this page?">
+                <ChildContent>
+                    <p style="margin:0">The page for <strong>@_date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)</strong> and everything on it will be removed. This can't be undone.</p>
+                </ChildContent>
+                <Footer>
+                    <button type="button" class="btn btn-ghost" @onclick="() => _confirmDelete = false">Keep it</button>
+                    <button type="button" class="btn btn-danger" @onclick="DeletePageAsync"><Icon Name="trash" Size="16" />Delete page</button>
+                </Footer>
+            </Modal>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+    [Parameter] public string DateText { get; set; } = "";
+    [SupplyParameterFromQuery(Name = "new")] public int? New { get; set; }
+
+    private Space? _space;
+    private Page? _page;
+    private SheetModel? _model;
+    private DateOnly _date;
+    private bool _notFound;
+    private Guid? _selectedId;
+    private DateTimeOffset _now;
+    private PrevNext? _pn;
+    private List<PageRef> _backlinks = [];
+    private readonly Dictionary<Guid, int> _versions = [];
+    private int _titleVersion;
+    private readonly List<UndoEntry> _undo = [];
+    private string _saveClass = "";
+    private int _zoom = 100;
+    private (int Sheet, double X, double Y)? _dropPoint;
+    private bool _share, _pickLink, _linkForSelected, _askSection, _confirmDelete;
+    private Section? _graceSection;
+    private Guid? _chosenSection;
+    private TaskCompletionSource<bool>? _sectionAnswer;
+    private string? _newTag;
+    private string? _loadedKey;
+    private Guid? _jsBoundPage;
+
+    private ElementReference _canvasRoot, _canvasCol;
+    private InputFile? _fileInput, _replaceInput;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<PageScreen>? _ref;
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource _cts = new();
+
+    private static readonly string[] TagSuggestions =
+        ["☀️ Sunny", "🌧️ Rainy", "😊 Good day", "😴 Tired", "🎉 Milestone", "💡 Idea", "📍 Home", "✈️ Travel", "🌱 Fresh start", "🍂 Autumn", "❄️ Winter", "🌸 Spring"];
+
+    private bool CanEdit => _page is not null && _page.Sections.Any(s => Policy.IsEditable(s, _now));
+    private bool MetaEditable => _page is not null && Policy.IsMetaEditable(_page.Sections, _now);
+    private bool CanDeletePage => _page is not null && !_page.Sections.Any(s => Policy.IsLocked(s, _now));
+    private SheetElement? Selected => _selectedId is { } id ? _model?.Elements.FirstOrDefault(e => e.Element.Id == id) : null;
+    private Guid? ActiveSectionId => _page?.Sections.FirstOrDefault(s => Policy.IsDraft(s, _now))?.Id ?? _chosenSection;
+    private Dictionary<Guid, int> SectionCounts => _model?.Elements.GroupBy(e => e.Element.SectionId).ToDictionary(g => g.Key, g => g.Count()) ?? [];
+
+    private string PageTitleText => _space is null ? "Dayleaf"
+        : $"{(_model is null || string.IsNullOrWhiteSpace(_model.Title) ? _date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture) : _model.Title)} · {_space.Name}";
+
+    // ───────────────────────── lifecycle ─────────────────────────
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var key = $"{Slug}/{DateText}";
+        if (key == _loadedKey) return;
+        _loadedKey = key;
+        _selectedId = null;
+        _undo.Clear();
+        _chosenSection = null;
+        _now = Clock.GetUtcNow();
+
+        if (!DateOnly.TryParseExact(DateText, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _date))
+        {
+            _notFound = true;
+            return;
+        }
+        _space = await Spaces.GetBySlugAsync(Slug);
+        _notFound = _space is null;
+        if (_space is null) return;
+
+        _page = await Pages.GetByDateAsync(_space.Id, _date);
+        if (_page is null && New == 1) await CreateAsync();
+        else await RefreshAsync();
+    }
+
+    protected override void OnInitialized()
+    {
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+        _ = TickAsync();
+    }
+
+    private async Task TickAsync()
+    {
+        try
+        {
+            while (await _timer!.WaitForNextTickAsync(_cts.Token))
+            {
+                await InvokeAsync(async () =>
+                {
+                    _now = Clock.GetUtcNow();
+                    if (_page is not null) await RefreshAsync();
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_model is null)
+        {
+            if (_jsBoundPage is not null && _module is not null)
+            {
+                await _module.InvokeVoidAsync("disposeEditor");
+                _jsBoundPage = null;
+            }
+            return;
+        }
+        if (_jsBoundPage == _model.PageId) return;
+        _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/dayleaf.js");
+        _ref ??= DotNetObjectReference.Create(this);
+        _zoom = await _module.InvokeAsync<int>("initEditor", _canvasRoot, _ref, _canvasCol, _fileInput?.Element);
+        _jsBoundPage = _model.PageId;
+        StateHasChanged();
+    }
+
+    private async Task RefreshAsync()
+    {
+        if (_space is null) return;
+        _now = Clock.GetUtcNow();
+        if (_page is not null) _page = await Pages.GetAsync(_page.Id);
+        if (_page is null)
+        {
+            _model = null;
+            _pn = await Timeline.GetPrevNextAsync(_space.Id, _date);
+            return;
+        }
+        var model = await Pages.GetSheetModelAsync(_page.Id);
+        if (model is not null)
+            foreach (var e in model.Elements)
+                e.Version = _versions.TryGetValue(e.Element.Id, out var v) ? v : 0;
+        _model = model;
+        _pn = await Timeline.GetPrevNextAsync(_space.Id, _date);
+        _backlinks = await Timeline.GetBacklinksAsync(_page.Id);
+        if (_selectedId is { } sid && _model?.Elements.All(e => e.Element.Id != sid) == true) _selectedId = null;
+    }
+
+    private async Task<bool> RunAsync(Func<Task> action, string? success = null)
+    {
+        _saveClass = "saving";
+        try
+        {
+            await action();
+            _saveClass = "";
+            if (success is not null) Toasts.Success(success);
+            return true;
+        }
+        catch (Exception ex) when (ex is SectionLockedException or DayleafRuleException)
+        {
+            _saveClass = "";
+            Toasts.Error(ex.Message);
+            await RefreshAsync();
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _saveClass = "err";
+            Toasts.Error("Something went wrong: " + ex.Message);
+            await RefreshAsync();
+            return false;
+        }
+    }
+
+    // ───────────────────────── page ─────────────────────────
+
+    private async Task CreateAsync()
+    {
+        if (_space is null) return;
+        await RunAsync(async () =>
+        {
+            _page = await Pages.GetOrCreatePageAsync(_space.Id, _date);
+            await RefreshAsync();
+        });
+        if (New == 1) Nav.NavigateTo($"/s/{_space.Slug}/{_date:yyyy-MM-dd}", replace: true);
+    }
+
+    private async Task OnDateChanged(ChangeEventArgs e)
+    {
+        if (!DateOnly.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, out var d) || d == _date || _space is null) return;
+        if (_page is null || !MetaEditable)
+        {
+            Nav.NavigateTo($"/s/{_space.Slug}/{d:yyyy-MM-dd}");
+            return;
+        }
+        var ok = await RunAsync(() => Pages.UpdatePageMetaAsync(_page.Id, _model!.Title, _model.Theme, _model.Tags, d), $"Moved to {d:MMM d, yyyy}");
+        if (ok) Nav.NavigateTo($"/s/{_space.Slug}/{d:yyyy-MM-dd}", replace: true);
+    }
+
+    private Task SaveMetaAsync(string? title = null, string? theme = null, List<string>? tags = null) =>
+        RunAsync(async () =>
+        {
+            await Pages.UpdatePageMetaAsync(_page!.Id, title ?? _model!.Title, theme ?? _model!.Theme, tags ?? _model!.Tags, null);
+            await RefreshAsync();
+        });
+
+    private Task SetThemeAsync(string theme) => SaveMetaAsync(theme: theme);
+
+    private async Task SetTitleAsync(ChangeEventArgs e)
+    {
+        _titleVersion++;
+        await SaveMetaAsync(title: e.Value?.ToString() ?? "");
+    }
+
+    private async Task TagKeyAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_newTag))
+        {
+            var t = _newTag.Trim();
+            _newTag = null;
+            await AddTagAsync(t);
+        }
+    }
+
+    private Task AddTagAsync(string tag) => SaveMetaAsync(tags: [.. _model!.Tags, tag]);
+    private Task RemoveTagAsync(string tag) => SaveMetaAsync(tags: _model!.Tags.Where(t => t != tag).ToList());
+
+    private async Task DeletePageAsync()
+    {
+        _confirmDelete = false;
+        if (await RunAsync(() => Pages.DeletePageAsync(_page!.Id), "Page deleted"))
+            Nav.NavigateTo($"/s/{_space!.Slug}");
+    }
+
+    private void Go(PageRef? r)
+    {
+        if (r is not null) Nav.NavigateTo(r.Url);
+    }
+
+    private async Task ZoomAsync(string mode)
+    {
+        if (_module is not null) _zoom = await _module.InvokeAsync<int>("setZoom", mode);
+    }
+
+    private Task AddSheetAsync() => RunAsync(async () => { await Pages.AddSheetAsync(_page!.Id); await RefreshAsync(); });
+    private Task RemoveSheetAsync() => RunAsync(async () => { await Pages.RemoveEmptyLastSheetAsync(_page!.Id); await RefreshAsync(); });
+
+    // ───────────────────────── sections ─────────────────────────
+
+    private Task SubmitAsync(Section s) => RunAsync(async () =>
+    {
+        await Pages.SubmitSectionAsync(s.Id);
+        await RefreshAsync();
+    }, $"“{s.Label}” submitted — editable for {Policy.EditWindow.TotalHours:0} more hours, then it locks.");
+
+    private Task AddSectionAsync() => RunAsync(async () =>
+    {
+        var sec = await Pages.AddSectionAsync(_page!.Id);
+        _chosenSection = null;
+        await RefreshAsync();
+        Toasts.Success($"New section: {sec.Label}");
+    });
+
+    private Task RenameSectionAsync((Section Section, string Label) r) => RunAsync(async () =>
+    {
+        await Pages.RenameSectionAsync(r.Section.Id, r.Label);
+        await RefreshAsync();
+    });
+
+    private Task DeleteSectionAsync(Section s) => RunAsync(async () =>
+    {
+        await Pages.DeleteSectionAsync(s.Id);
+        await RefreshAsync();
+    }, $"Removed “{s.Label}”");
+
+    /// <summary>Decides which section receives new elements (plan §8): open draft, or ask about a section still in its grace window.</summary>
+    private async Task<(bool Ok, Guid? SectionId)> ResolveTargetAsync()
+    {
+        _now = Clock.GetUtcNow();
+        var sections = _page!.Sections;
+        if (sections.Any(s => Policy.IsDraft(s, _now))) return (true, null);
+        if (_chosenSection is { } chosen && sections.FirstOrDefault(s => s.Id == chosen) is { } cs && Policy.IsEditable(cs, _now)) return (true, chosen);
+        _graceSection = sections.Where(s => Policy.State(s, _now) == SectionState.Submitted).OrderByDescending(s => s.Seq).FirstOrDefault();
+        if (_graceSection is null) return (true, null); // service starts a new draft section
+
+        _sectionAnswer = new TaskCompletionSource<bool>();
+        _askSection = true;
+        StateHasChanged();
+        var useGrace = await _sectionAnswer.Task;
+        if (useGrace)
+        {
+            _chosenSection = _graceSection.Id;
+            return (true, _graceSection.Id);
+        }
+        return (true, null);
+    }
+
+    private void AnswerSection(bool useGrace)
+    {
+        _askSection = false;
+        _sectionAnswer?.TrySetResult(useGrace);
+    }
+
+    // ───────────────────────── inserting ─────────────────────────
+
+    private async Task<PageElement?> InsertAsync(ElementKind kind, ElementData data, Guid? media = null, Guid? link = null,
+        (int Sheet, double X, double Y)? at = null, (double W, double H)? size = null, double? rotation = null, bool edit = false)
+    {
+        if (_page is null) return null;
+        var (ok, sectionId) = await ResolveTargetAsync();
+        if (!ok) return null;
+        PageElement? el = null;
+        await RunAsync(async () =>
+        {
+            el = await Pages.AddElementAsync(_page.Id, kind, data, media, link, at, size, rotation, sectionId);
+            _undo.Add(new UndoEntry("add", null, el.Id));
+            await RefreshAsync();
+            _selectedId = el.Id;
+        });
+        if (el is not null)
+        {
+            StateHasChanged();
+            await Task.Yield();
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("scrollToElement", el.Id);
+                if (edit) await _module.InvokeVoidAsync("beginTextEdit", el.Id);
+            }
+        }
+        return el;
+    }
+
+    private Task InsertDefaultAsync(ElementKind kind)
+    {
+        ElementData data = kind switch
+        {
+            ElementKind.Text => new TextData(),
+            ElementKind.Heading => new HeadingData(),
+            ElementKind.Note => new NoteData { Color = new[] { "yellow", "pink", "mint", "sky", "lilac" }[Random.Shared.Next(5)] },
+            ElementKind.Checklist => new ChecklistData { Title = "To do", Items = [new() { Text = "" }] },
+            ElementKind.Quote => new QuoteData { Label = "THE TAKEAWAY" },
+            ElementKind.Label => new LabelData(),
+            ElementKind.Divider => new DividerData { Style = "wave" },
+            ElementKind.Tape => new TapeData(),
+            ElementKind.Shape => new ShapeData(),
+            _ => ElementDataJson.CreateDefault(kind),
+        };
+        var edit = kind is ElementKind.Text or ElementKind.Heading or ElementKind.Note or ElementKind.Quote or ElementKind.Label;
+        return InsertAsync(kind, data, edit: edit);
+    }
+
+    private Task AddStickerAsync(string ch) => InsertAsync(ElementKind.Emoji, new EmojiData { Char = ch }, size: (72, 72));
+
+    private async Task ShowStickers()
+    {
+        _selectedId = null;
+        StateHasChanged();
+        await Task.Yield();
+        if (_module is not null) await _module.InvokeVoidAsync("scrollToId", "sticker-tray");
+    }
+
+    private async Task OnLinkPickedAsync(PageRef r)
+    {
+        if (_linkForSelected && Selected is { Data: PageLinkData } sel)
+        {
+            await RunAsync(async () =>
+            {
+                _undo.Add(new UndoEntry("link", sel.Element.Clone(), null));
+                await Pages.SetLinkTargetAsync(sel.Element.Id, r.Id);
+                await RefreshAsync();
+            });
+        }
+        else
+        {
+            await InsertAsync(ElementKind.PageLink, new PageLinkData(), link: r.Id);
+        }
+    }
+
+    // ───────────────────────── photos ─────────────────────────
+
+    private async Task PickPhotosAsync()
+    {
+        _dropPoint = null;
+        if (_module is not null && _fileInput?.Element is { } el) await _module.InvokeVoidAsync("openFilePicker", el);
+    }
+
+    private async Task PickReplaceAsync()
+    {
+        if (_module is not null && _replaceInput?.Element is { } el) await _module.InvokeVoidAsync("openFilePicker", el);
+    }
+
+    private async Task<MediaFile?> UploadAsync(IBrowserFile file)
+    {
+        try
+        {
+            var type = file.ContentType;
+            IBrowserFile source = file;
+            if (type is "image/jpeg" or "image/png" or "image/webp")
+            {
+                // The browser resizes big images; PNG and WebP keep transparency.
+                source = await file.RequestImageFileAsync(type, 2400, 2400);
+            }
+            else if (type != "image/gif")
+            {
+                source = await file.RequestImageFileAsync("image/jpeg", 2400, 2400);
+            }
+            await using var stream = source.OpenReadStream(Media.MaxUploadBytes, _cts.Token);
+            return await Media.SaveAsync(stream, file.Name, _cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Toasts.Error($"{file.Name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    private async Task OnFilesAsync(InputFileChangeEventArgs e)
+    {
+        if (_page is null || !CanEditOrCanAdd()) return;
+        var files = e.GetMultipleFiles(20);
+        var drop = _dropPoint;
+        _dropPoint = null;
+        var i = 0;
+        _saveClass = "saving";
+        foreach (var f in files)
+        {
+            var media = await UploadAsync(f);
+            if (media is null) continue;
+            var (w, h) = LayoutService.PhotoSize(media.Width, media.Height);
+            if (files.Count > 1) (w, h) = (Math.Round(w * 0.6), Math.Round(h * 0.6));
+            (int, double, double)? at = drop is { } d ? (d.Sheet, d.X - w / 2 + i * 34, d.Y - h / 2 + i * 34) : null;
+            await InsertAsync(ElementKind.Photo, new PhotoData { Style = Styles[i % Styles.Length] }, media.Id, at: at, size: (w, h));
+            i++;
+        }
+        _saveClass = "";
+        if (i > 0) Toasts.Success(i == 1 ? "Photo added" : $"{i} photos added");
+    }
+
+    private static readonly string[] Styles = ["sticker", "polaroid", "taped"];
+
+    private bool CanEditOrCanAdd() => _page is not null; // adding is always allowed: a new section opens if needed
+
+    private async Task OnReplaceAsync(InputFileChangeEventArgs e)
+    {
+        if (Selected is not { Data: PhotoData } sel) return;
+        var media = await UploadAsync(e.File);
+        if (media is null) return;
+        await RunAsync(async () =>
+        {
+            _undo.Add(new UndoEntry("replace", sel.Element.Clone(), null));
+            await Pages.SetElementMediaAsync(sel.Element.Id, media.Id);
+            await RefreshAsync();
+        }, "Photo replaced");
+    }
+
+    // ───────────────────────── element edits ─────────────────────────
+
+    private async Task UpdateDataAsync(SheetElement item, ElementData data)
+    {
+        await RunAsync(async () =>
+        {
+            _undo.Add(new UndoEntry("edit", item.Element.Clone(), null));
+            await Pages.UpdateElementDataAsync(item.Element.Id, data);
+            Bump(item.Element.Id);
+            await RefreshAsync();
+        });
+    }
+
+    private async Task InspectorTransformAsync(SheetElement item, (double W, double H, double Rot, bool Commit) t)
+    {
+        var e = item.Element;
+        if (!t.Commit)
+        {
+            e.W = t.W; e.H = t.H; e.Rotation = t.Rot;
+            return;
+        }
+        await CommitTransform(e.Id.ToString(), e.Sheet, e.X, e.Y, t.W, t.H, t.Rot);
+    }
+
+    private Task RotateByAsync(SheetElement sel, double deg)
+    {
+        var e = sel.Element;
+        var rot = e.Rotation + deg;
+        if (rot > 180) rot -= 360;
+        return CommitTransform(e.Id.ToString(), e.Sheet, e.X, e.Y, e.W, e.H, rot);
+    }
+
+    private Task CropAsync(SheetElement sel, PhotoData p)
+    {
+        var copy = (PhotoData)p.Copy();
+        copy.Zoom = p.Zoom >= 3.9 ? 1 : Math.Round(p.Zoom + 0.5, 1);
+        return UpdateDataAsync(sel, copy);
+    }
+
+    private async Task SetPhotoStyleAsync(SheetElement sel, string style)
+    {
+        var copy = (PhotoData)sel.Data.Copy();
+        copy.Style = style;
+        await UpdateDataAsync(sel, copy);
+        var e = sel.Element;
+        if (style == "round" && Math.Abs(e.W - e.H) > 0.5)
+        {
+            var side = Math.Min(e.W, e.H);
+            await CommitTransform(e.Id.ToString(), e.Sheet, e.X + (e.W - side) / 2, e.Y + (e.H - side) / 2, side, side, e.Rotation);
+        }
+    }
+
+    private async Task ActionAsync(ElementAction action)
+    {
+        if (Selected is not { Editable: true } sel) return;
+        var id = sel.Element.Id;
+        switch (action)
+        {
+            case ElementAction.Front:
+                await RunAsync(async () => { await Pages.BringToFrontAsync(id); await RefreshAsync(); });
+                break;
+            case ElementAction.Back:
+                await RunAsync(async () => { await Pages.SendToBackAsync(id); await RefreshAsync(); });
+                break;
+            case ElementAction.Duplicate:
+                await RunAsync(async () =>
+                {
+                    var copy = await Pages.DuplicateElementAsync(id);
+                    _undo.Add(new UndoEntry("add", null, copy.Id));
+                    await RefreshAsync();
+                    _selectedId = copy.Id;
+                });
+                break;
+            case ElementAction.Delete:
+                await RunAsync(async () =>
+                {
+                    var before = sel.Element.Clone();
+                    await Pages.DeleteElementAsync(id);
+                    _undo.Add(new UndoEntry("delete", before, null));
+                    _selectedId = null;
+                    await RefreshAsync();
+                });
+                Toasts.Show("Deleted · Ctrl+Z to undo");
+                break;
+        }
+    }
+
+    private async Task BeginEditAsync(Guid id)
+    {
+        if (_module is not null) await _module.InvokeVoidAsync("beginTextEdit", id);
+    }
+
+    private async Task SelectAsync(Guid? id)
+    {
+        _selectedId = id;
+        await Task.CompletedTask;
+    }
+
+    private void Bump(Guid id) => _versions[id] = (_versions.TryGetValue(id, out var v) ? v : 0) + 1;
+
+    private async Task UndoAsync()
+    {
+        if (_undo.Count == 0) return;
+        var entry = _undo[^1];
+        _undo.RemoveAt(_undo.Count - 1);
+        await RunAsync(async () =>
+        {
+            if (entry.AddedId is { } added)
+            {
+                await Pages.DeleteElementAsync(added);
+                if (_selectedId == added) _selectedId = null;
+            }
+            else if (entry.Before is { } b)
+            {
+                var exists = _model?.Elements.Any(e => e.Element.Id == b.Id) == true;
+                if (exists)
+                {
+                    await Pages.TransformElementAsync(b.Id, b.Sheet, b.X, b.Y, b.W, b.H, b.Rotation);
+                    await Pages.UpdateElementDataAsync(b.Id, b.ReadData());
+                    if (b.Kind == ElementKind.Photo && b.MediaId is { } m) await Pages.SetElementMediaAsync(b.Id, m);
+                    if (b.Kind == ElementKind.PageLink) await Pages.SetLinkTargetAsync(b.Id, b.LinkTargetPageId);
+                    Bump(b.Id);
+                }
+                else
+                {
+                    var re = await Pages.AddElementAsync(b.PageId, b.Kind, b.ReadData(), b.MediaId, b.LinkTargetPageId,
+                        (b.Sheet, b.X, b.Y), (b.W, b.H), b.Rotation, await EditableSectionOr(b.SectionId));
+                    _selectedId = re.Id;
+                }
+            }
+            await RefreshAsync();
+        }, "Undone");
+    }
+
+    private Task<Guid?> EditableSectionOr(Guid sectionId)
+    {
+        var s = _page?.Sections.FirstOrDefault(x => x.Id == sectionId);
+        return Task.FromResult(s is not null && Policy.IsEditable(s, Clock.GetUtcNow()) ? (Guid?)sectionId : null);
+    }
+
+    // ───────────────────────── JS → .NET ─────────────────────────
+
+    [JSInvokable]
+    public Task Select(string? id)
+    {
+        _selectedId = Guid.TryParse(id, out var g) ? g : null;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public async Task CommitTransform(string id, int sheet, double x, double y, double w, double h, double rot)
+    {
+        if (!Guid.TryParse(id, out var gid) || _model is null) return;
+        var item = _model.Elements.FirstOrDefault(e => e.Element.Id == gid);
+        if (item is null) return;
+        var before = item.Element.Clone();
+        await RunAsync(async () =>
+        {
+            var saved = await Pages.TransformElementAsync(gid, sheet, x, y, w, h, rot);
+            _undo.Add(new UndoEntry("move", before, null));
+            var e = item.Element;
+            (e.Sheet, e.X, e.Y, e.W, e.H, e.Rotation, e.UpdatedAt) = (saved.Sheet, saved.X, saved.Y, saved.W, saved.H, saved.Rotation, saved.UpdatedAt);
+        });
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task CommitText(string id, string field, string value)
+    {
+        if (!Guid.TryParse(id, out var gid) || _model?.Elements.FirstOrDefault(e => e.Element.Id == gid) is not { } item) return;
+        var data = item.Data.Copy();
+        switch (data, field)
+        {
+            case (TextData t, "html"): t.Html = value; break;
+            case (NoteData n, "html"): n.Html = value; break;
+            case (NoteData n, "title"): n.Title = value; break;
+            case (HeadingData hd, "text"): hd.Text = value; break;
+            case (QuoteData q, "text"): q.Text = value; break;
+            case (QuoteData q, "label"): q.Label = value; break;
+            case (LabelData lb, "text"): lb.Text = value; break;
+            case (PhotoData p, "caption"): p.Caption = value; break;
+            case (ChecklistData c, "title"): c.Title = value; break;
+            case (ChecklistData c, _) when field.StartsWith("item:") && int.TryParse(field[5..], out var idx) && idx < c.Items.Count:
+                if (string.IsNullOrWhiteSpace(value)) c.Items.RemoveAt(idx); else c.Items[idx].Text = value;
+                break;
+            default: return;
+        }
+        Bump(gid);
+        await RunAsync(async () =>
+        {
+            _undo.Add(new UndoEntry("text", item.Element.Clone(), null));
+            await Pages.UpdateElementDataAsync(gid, data);
+            await RefreshAsync();
+        });
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task CommitTitle(string title)
+    {
+        _titleVersion++;
+        await SaveMetaAsync(title: title);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task ToggleCheck(string id, int index)
+    {
+        if (!Guid.TryParse(id, out var gid) || _model?.Elements.FirstOrDefault(e => e.Element.Id == gid) is not { Data: ChecklistData c } item) return;
+        if (index < 0 || index >= c.Items.Count) return;
+        var copy = (ChecklistData)c.Copy();
+        copy.Items[index].Done = !copy.Items[index].Done;
+        await UpdateDataAsync(item, copy);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnKey(string key, bool shift)
+    {
+        switch (key)
+        {
+            case "undo": await UndoAsync(); break;
+            case "duplicate": await ActionAsync(ElementAction.Duplicate); break;
+            case "delete": await ActionAsync(ElementAction.Delete); break;
+            case "prev": Go(_pn?.Prev); break;
+            case "next": Go(_pn?.Next); break;
+            case "print":
+                if (_model is not null && _module is not null) await _module.InvokeVoidAsync("openTab", $"/print/page/{_model.PageId}");
+                break;
+        }
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public Task SetDropPoint(int sheet, double x, double y)
+    {
+        _dropPoint = sheet < 0 ? null : (sheet, x, y);
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public async Task DropSticker(string ch, int sheet, double x, double y)
+    {
+        await InsertAsync(ElementKind.Emoji, new EmojiData { Char = ch }, at: sheet < 0 ? null : (sheet, x, y), size: (72, 72));
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public Task OpenPhotoOptions(string id) => Select(id);
+
+    [JSInvokable]
+    public Task Toast(string message)
+    {
+        Toasts.Show(message);
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _cts.Cancel();
+        _timer?.Dispose();
+        _sectionAnswer?.TrySetResult(false);
+        if (_module is not null)
+        {
+            try
+            {
+                await _module.InvokeVoidAsync("disposeEditor");
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException) { }
+        }
+        _ref?.Dispose();
+    }
+}

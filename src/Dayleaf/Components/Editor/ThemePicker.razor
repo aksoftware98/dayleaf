@@ -1,0 +1,36 @@
+<div class="themes" role="group" aria-label="Page theme">
+    @foreach (var t in Themes.All)
+    {
+        <button type="button" class="theme-card" aria-pressed="@(Value == t.Id ? "true" : "false")" title="@t.Blurb" disabled="@Disabled"
+                style="background:@t.Paper" @onclick="() => ValueChanged.InvokeAsync(t.Id)">
+            <span class="aa" style="font-family:@t.TitleFont;color:@t.Ink;@AaStyle(t)">Aa</span>
+            <span class="dots"><i style="background:@t.Accent"></i><i style="background:@t.Accent2"></i></span>
+            <span class="nm" style="color:@t.Ink">@t.Name</span>
+        </button>
+    }
+    @if (ShowShuffle)
+    {
+        <button type="button" class="theme-card shuffle" disabled="@Disabled" @onclick="Shuffle"><Icon Name="shuffle" Size="16" />Shuffle</button>
+    }
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = Themes.Default;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public bool ShowShuffle { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+
+    private static string AaStyle(ThemeInfo t) => t.TitleStyle switch
+    {
+        "italic" => "font-style:italic",
+        "bold" => "font-weight:700",
+        "hand" => "font-weight:700;font-size:24px",
+        _ => "",
+    };
+
+    private Task Shuffle()
+    {
+        var others = Themes.All.Where(t => t.Id != Value).ToList();
+        return ValueChanged.InvokeAsync(others[Random.Shared.Next(others.Count)].Id);
+    }
+}

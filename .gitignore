@@ -424,3 +424,26 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+## ── Dayleaf ───────────────────────────────────────────────────────────────
+## Notebook data — never commit
+dayleaf.db
+dayleaf.db-*
+*.db
+*.db-shm
+*.db-wal
+media/
+App_Data/
+backups/
+keys/
+*.dayleaf
+
+## Local tooling
+.claude/settings.local.json
+.claude/launch.json
+
+## Sample images live in src/Dayleaf/SeedData; the root copies are duplicates
+/images/
+
+## The VS template's *.e2e rule would otherwise hide the end-to-end test project
+!tests/Dayleaf.E2E/

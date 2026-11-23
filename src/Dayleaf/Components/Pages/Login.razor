@@ -1,0 +1,69 @@
+@page "/login"
+@attribute [AllowAnonymous]
+@attribute [ExcludeFromInteractiveRouting]
+@layout PrintLayout
+@inject PasswordGate Gate
+@inject TimeProvider Clock
+@inject NavigationManager Nav
+
+<PageTitle>Sign in · Dayleaf</PageTitle>
+
+<main class="login-page">
+    <form class="login-card" method="post" @formname="login" @onsubmit="SignInAsync">
+        <AntiforgeryToken />
+        <div class="brand" style="padding:0">
+            <span class="brand-mark"><Icon Name="book" Size="18" /></span>
+            <span class="brand-name">Dayleaf</span>
+        </div>
+        <h1>Welcome back.</h1>
+        <p class="muted">This notebook is private. Enter its password to open it.</p>
+        <label class="field">Password
+            <input class="input" type="password" name="Password" autocomplete="current-password" required autofocus />
+        </label>
+        <label class="check" style="justify-content:flex-start">
+            <input type="checkbox" name="Remember" value="true" checked /> Keep me signed in on this device
+        </label>
+        <input type="hidden" name="Return" value="@SafeReturn(ReturnUrl)" />
+        @if (_error is not null)
+        {
+            <p class="error-text" role="alert">@_error</p>
+        }
+        <button type="submit" class="btn btn-primary btn-block"><Icon Name="unlock" Size="16" />Open the notebook</button>
+    </form>
+</main>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromQuery(Name = "ReturnUrl")] public string? ReturnUrl { get; set; }
+    [SupplyParameterFromForm] public string? Password { get; set; }
+    [SupplyParameterFromForm] public bool Remember { get; set; }
+    [SupplyParameterFromForm] public string? Return { get; set; }
+
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        if (!Gate.Enabled) Nav.NavigateTo("/", forceLoad: true);
+    }
+
+    private async Task SignInAsync()
+    {
+        var now = Clock.GetUtcNow();
+        if (Gate.IsThrottled(now))
+        {
+            _error = "Too many tries. Wait a few minutes and try again.";
+            return;
+        }
+        if (!await Gate.VerifyAsync(Password, now))
+        {
+            _error = "That password isn't right.";
+            return;
+        }
+        await Gate.SignInAsync(HttpContext, Remember);
+        Nav.NavigateTo(SafeReturn(Return), forceLoad: true);
+    }
+
+    /// <summary>Only local paths: never redirect to another site after sign-in.</summary>
+    private static string SafeReturn(string? url) =>
+        !string.IsNullOrEmpty(url) && url.StartsWith('/') && !url.StartsWith("//") && !url.StartsWith("/\\") ? url : "/";
+}

@@ -1,0 +1,36 @@
+@page "/print/page/{Id:guid}"
+@attribute [ExcludeFromInteractiveRouting]
+@layout PrintLayout
+@inject IPageService Pages
+@inject NavigationManager Nav
+
+<PageTitle>@(_model is null ? "Print" : $"{_model.SpaceName} · {_model.Date:MMM d, yyyy}")</PageTitle>
+
+@if (_model is not null)
+{
+    <div class="print-body">
+        <div class="print-bar">
+            <button type="button" class="btn btn-primary" onclick="window.print()"><Icon Name="print" Size="16" />Print / Save as PDF</button>
+            <span class="muted">Choose <strong>Save as PDF</strong>, paper A4, margins <strong>None</strong>.</span>
+            <a class="btn btn-ghost" href="@($"/export/page/{Id}.html")" download>Download HTML</a>
+        </div>
+        <A4Sheet Model="_model" Mode="SheetMode.Print" />
+    </div>
+    @if (Auto != 0)
+    {
+        @((MarkupString)"<script>window.addEventListener('load',()=>{document.fonts.ready.then(()=>setTimeout(()=>window.print(),350));});</script>")
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [SupplyParameterFromQuery(Name = "auto")] public int? AutoQuery { get; set; }
+    private int Auto => AutoQuery ?? 1;
+    private SheetModel? _model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _model = await Pages.GetSheetModelAsync(Id);
+        if (_model is null) Nav.NotFound();
+    }
+}

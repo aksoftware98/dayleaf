@@ -1,0 +1,94 @@
+@inject ISpaceService Spaces
+@inject ToastService Toasts
+
+<Modal Open="Open" OpenChanged="OpenChanged" Title="@(Existing is null ? "New space" : "Edit space")">
+    <ChildContent>
+        <label class="field">Name
+            <input class="input" @bind="_name" @bind:event="oninput" maxlength="100" placeholder="Our Farm, Typing 365, Life…" autofocus />
+        </label>
+        <div class="field">Icon
+            <div class="emoji-pick" role="group" aria-label="Icon">
+                @foreach (var e in EmojiCatalog.SpaceIcons)
+                {
+                    <button type="button" aria-label="@e" aria-pressed="@(_emoji == e ? "true" : "false")" @onclick="() => _emoji = e">@e</button>
+                }
+            </div>
+            <input class="input" @bind="_emoji" maxlength="8" aria-label="Or type any emoji" style="max-width:120px" />
+        </div>
+        <div class="field">Color
+            <div class="swatches" role="group" aria-label="Color">
+                @foreach (var c in SpaceColors.All)
+                {
+                    <button type="button" class="swatch" style="background:@c.Hex" aria-label="@c.Name" aria-pressed="@(_color == c.Id ? "true" : "false")" @onclick="() => _color = c.Id"></button>
+                }
+            </div>
+        </div>
+        <label class="field">What's it about? <span class="hint">Optional</span>
+            <input class="input" @bind="_description" maxlength="200" placeholder="the family orchard in Serghaya" />
+        </label>
+        <div class="field">Default page theme
+            <ThemePicker Value="@_theme" ValueChanged="v => _theme = v" ShowShuffle="false" />
+        </div>
+        @if (_error is not null)
+        {
+            <p class="error-text" role="alert">@_error</p>
+        }
+    </ChildContent>
+    <Footer>
+        <button type="button" class="btn btn-ghost" @onclick="() => OpenChanged.InvokeAsync(false)">Cancel</button>
+        <button type="button" class="btn btn-primary" disabled="@(string.IsNullOrWhiteSpace(_name) || _busy)" @onclick="SaveAsync">
+            @(Existing is null ? "Create space" : "Save")
+        </button>
+    </Footer>
+</Modal>
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Parameter] public Space? Existing { get; set; }
+    [Parameter] public EventCallback<Space> OnSaved { get; set; }
+
+    private string _name = "", _emoji = "📓", _color = "forest", _theme = Themes.Default;
+    private string? _description, _error;
+    private bool _busy, _wasOpen;
+
+    protected override void OnParametersSet()
+    {
+        if (Open && !_wasOpen)
+        {
+            _error = null;
+            if (Existing is { } s)
+            {
+                (_name, _emoji, _color, _description, _theme) = (s.Name, s.Emoji, s.Color, s.Description, s.DefaultTheme);
+            }
+            else
+            {
+                (_name, _emoji, _color, _description, _theme) = ("", "📓", SpaceColors.All[Random.Shared.Next(SpaceColors.All.Count)].Id, null, Themes.Default);
+            }
+        }
+        _wasOpen = Open;
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var saved = Existing is null
+                ? await Spaces.CreateAsync(_name, _emoji, _color, _description, _theme)
+                : await Spaces.UpdateAsync(Existing.Id, _name, _emoji, _color, _description, _theme);
+            Toasts.Success(Existing is null ? $"Created {saved.Name}" : "Saved");
+            await OpenChanged.InvokeAsync(false);
+            await OnSaved.InvokeAsync(saved);
+        }
+        catch (DayleafRuleException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

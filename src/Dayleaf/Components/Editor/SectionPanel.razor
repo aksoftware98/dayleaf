@@ -1,0 +1,107 @@
+@* Lists sections with state badges, live countdowns, Submit and + Add section. *@
+<div class="sections">
+    @foreach (var s in Sections.OrderBy(x => x.Seq))
+    {
+        var state = Policy.State(s, Now);
+        var left = Policy.TimeLeft(s, Now);
+        var auto = Policy.AutoSubmitsAt(s, Now);
+        <div class="sec @(s.Id == ActiveSectionId ? "active" : "")" @key="s.Id">
+            <div class="sec-row">
+                @if (_renaming == s.Id)
+                {
+                    <input class="sec-label-input" @bind="_label" @onkeydown="e => RenameKey(e, s)" @onblur="() => FinishRename(s)" aria-label="Section name" maxlength="60" />
+                }
+                else
+                {
+                    <span class="sec-label" title="@s.Label">@s.Label</span>
+                    @if (state != SectionState.Locked)
+                    {
+                        <button type="button" class="icon-btn borderless" style="width:32px;height:32px" aria-label="@($"Rename {s.Label}")" @onclick="() => StartRename(s)"><Icon Name="edit" Size="14" /></button>
+                    }
+                }
+                @switch (state)
+                {
+                    case SectionState.Draft:
+                        <span class="badge badge-draft"><Icon Name="edit" Size="12" />Draft</span>
+                        break;
+                    case SectionState.Submitted:
+                        <span class="badge badge-grace"><Icon Name="clock" Size="12" />@SectionLockPolicy.FormatSpan(left!.Value) left</span>
+                        break;
+                    default:
+                        <span class="badge badge-locked"><Icon Name="lock" Size="12" />Locked</span>
+                        break;
+                }
+            </div>
+            <div class="sec-time">
+                Started @s.CreatedAt.ToLocalTime().ToString("MMM d, HH:mm", CultureInfo.InvariantCulture)
+                @if (state == SectionState.Draft && auto is { } at)
+                {
+                    <span> · auto-submits @Relative(at)</span>
+                }
+                @if (state == SectionState.Submitted)
+                {
+                    <span> · editable until @Policy.LockAt(s, Now)!.Value.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture)</span>
+                }
+                @if (state == SectionState.Locked)
+                {
+                    <span> · locked @Policy.LockAt(s, Now)!.Value.ToLocalTime().ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                }
+                · @(Counts.TryGetValue(s.Id, out var n) ? n : 0) item@((Counts.TryGetValue(s.Id, out var n2) ? n2 : 0) == 1 ? "" : "s")
+            </div>
+            @if (state == SectionState.Draft)
+            {
+                <div style="display:flex;gap:8px">
+                    <button type="button" class="btn btn-primary btn-sm" style="flex:1" @onclick="() => OnSubmit.InvokeAsync(s)"><Icon Name="send" Size="14" />Submit section</button>
+                    @if (Sections.Count > 1)
+                    {
+                        <button type="button" class="icon-btn" style="width:36px;height:36px" aria-label="@($"Delete section {s.Label}")" @onclick="() => OnDelete.InvokeAsync(s)"><Icon Name="trash" Size="14" /></button>
+                    }
+                </div>
+            }
+        </div>
+    }
+    @if (!Sections.Any(s => Policy.IsDraft(s, Now)))
+    {
+        <button type="button" class="nav-new" @onclick="() => OnAdd.InvokeAsync()"><Icon Name="plus" Size="16" />Add section</button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public List<Section> Sections { get; set; } = [];
+    [Parameter, EditorRequired] public SectionLockPolicy Policy { get; set; } = default!;
+    [Parameter] public DateTimeOffset Now { get; set; }
+    [Parameter] public Guid? ActiveSectionId { get; set; }
+    [Parameter] public Dictionary<Guid, int> Counts { get; set; } = [];
+    [Parameter] public EventCallback<Section> OnSubmit { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
+    [Parameter] public EventCallback<(Section Section, string Label)> OnRename { get; set; }
+    [Parameter] public EventCallback<Section> OnDelete { get; set; }
+
+    private Guid? _renaming;
+    private string _label = "";
+
+    private void StartRename(Section s)
+    {
+        _renaming = s.Id;
+        _label = s.Label;
+    }
+
+    private async Task RenameKey(KeyboardEventArgs e, Section s)
+    {
+        if (e.Key == "Enter") await FinishRename(s);
+        if (e.Key == "Escape") _renaming = null;
+    }
+
+    private async Task FinishRename(Section s)
+    {
+        if (_renaming != s.Id) return;
+        _renaming = null;
+        if (!string.IsNullOrWhiteSpace(_label) && _label != s.Label) await OnRename.InvokeAsync((s, _label));
+    }
+
+    private string Relative(DateTimeOffset at)
+    {
+        var d = at - Now;
+        return d.TotalMinutes < 1 ? "now" : $"in {SectionLockPolicy.FormatSpan(d)}";
+    }
+}

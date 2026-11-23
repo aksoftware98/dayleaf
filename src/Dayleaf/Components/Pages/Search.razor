@@ -1,0 +1,111 @@
+@page "/search"
+@inject ISearchService SearchService
+@inject NavigationManager Nav
+
+<PageTitle>Search · Dayleaf</PageTitle>
+
+<div class="page-wrap">
+    <div class="search-hero">
+        <h1 class="page-title">Search</h1>
+        <form class="searchbox search-big" role="search" @onsubmit="Go">
+            <Icon Name="search" Size="20" />
+            <label class="sr-only" for="q">Search</label>
+            <input id="q" type="search" placeholder="tractor · june 2025 · 2026-11 · Serghaya" @bind="_q" @bind:event="oninput" @bind:after="DebounceAsync" autofocus />
+        </form>
+        <span class="hint">Words match titles, tags and everything written on the page. Dates work too: <strong>2025</strong>, <strong>2025-06</strong>, <strong>june 2025</strong>, <strong>Jun 11 2025</strong>.</span>
+    </div>
+
+    @if (_hits is not null)
+    {
+        <div class="section-head"><h2>@_hits.Count result@(_hits.Count == 1 ? "" : "s")</h2></div>
+        @if (_hits.Count == 0)
+        {
+            <EmptyState IconName="search" Title="Nothing found" Text="Try fewer words, or a month like “june 2025”." />
+        }
+        <div class="results">
+            @foreach (var h in _hits)
+            {
+                <a class="result" href="@h.Page.Url">
+                    @if (h.Page.PhotoIds.Count > 0)
+                    {
+                        <img src="/media/@h.Page.PhotoIds[0].ToString("N")" alt="" style="width:84px;height:84px;border-radius:12px;object-fit:cover;flex:none" loading="lazy" />
+                    }
+                    else
+                    {
+                        <span style="width:84px;height:84px;border-radius:12px;background:var(--app-bg);display:flex;align-items:center;justify-content:center;font-size:34px;flex:none">@h.Page.SpaceEmoji</span>
+                    }
+                    <div style="min-width:0">
+                        <span class="result-meta">@h.Page.SpaceEmoji @h.Page.SpaceName · @h.Page.Date.ToString("dddd, MMM d, yyyy", CultureInfo.InvariantCulture) · Page @h.Page.Number</span>
+                        <h3>@Highlight(string.IsNullOrWhiteSpace(h.Page.Title) ? "Untitled page" : h.Page.Title, h.Terms)</h3>
+                        @if (!string.IsNullOrWhiteSpace(h.Snippet))
+                        {
+                            <p>@Highlight(h.Snippet, h.Terms)</p>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+
+    private string? _q;
+    private List<SearchHit>? _hits;
+    private CancellationTokenSource? _debounce;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Q != _q || _hits is null)
+        {
+            _q = Q;
+            await RunAsync();
+        }
+    }
+
+    private async Task DebounceAsync()
+    {
+        _debounce?.Cancel();
+        _debounce = new CancellationTokenSource();
+        var token = _debounce.Token;
+        try
+        {
+            await Task.Delay(250, token);
+            await RunAsync();
+            Nav.NavigateTo($"/search?q={Uri.EscapeDataString(_q ?? "")}", replace: true);
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private async Task Go()
+    {
+        _debounce?.Cancel();
+        await RunAsync();
+    }
+
+    private async Task RunAsync() => _hits = string.IsNullOrWhiteSpace(_q) ? null : await SearchService.SearchAsync(_q);
+
+    private static RenderFragment Highlight(string text, IReadOnlyList<string> terms) => builder =>
+    {
+        if (terms.Count == 0) { builder.AddContent(0, text); return; }
+        var seq = 0;
+        var i = 0;
+        while (i < text.Length)
+        {
+            var best = -1;
+            var len = 0;
+            foreach (var t in terms)
+            {
+                var at = text.IndexOf(t, i, StringComparison.CurrentCultureIgnoreCase);
+                if (at >= 0 && (best < 0 || at < best)) { best = at; len = t.Length; }
+            }
+            if (best < 0) { builder.AddContent(seq++, text[i..]); break; }
+            if (best > i) builder.AddContent(seq++, text[i..best]);
+            builder.OpenElement(seq++, "mark");
+            builder.AddContent(seq++, text.Substring(best, len));
+            builder.CloseElement();
+            i = best + len;
+        }
+    };
+}

@@ -1,0 +1,26 @@
+<div class="months" role="group" aria-label="Months">
+    @for (var i = 0; i < 12; i++)
+    {
+        var m = i + 1;
+        var count = Counts.Length > i ? Counts[i] : 0;
+        <button type="button" class="month" aria-pressed="@(Selected == m ? "true" : "false")" disabled="@(count == 0)"
+                aria-label="@($"{CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(m)}: {count} page{(count == 1 ? "" : "s")}")"
+                title="@($"{count} page{(count == 1 ? "" : "s")}")"
+                @onclick="() => SelectedChanged.InvokeAsync(Selected == m ? null : m)">
+            <span class="month-bar" style="height:@(BarHeight(count))px"></span>
+            <span>@CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(m)</span>
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public int[] Counts { get; set; } = new int[12];
+    [Parameter] public int? Selected { get; set; }
+    [Parameter] public EventCallback<int?> SelectedChanged { get; set; }
+
+    private int BarHeight(int count)
+    {
+        var max = Math.Max(1, Counts.DefaultIfEmpty(0).Max());
+        return count == 0 ? 4 : 8 + (int)Math.Round(30.0 * count / max);
+    }
+}

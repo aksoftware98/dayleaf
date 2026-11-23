@@ -1,0 +1,51 @@
+@page "/print/space/{Id:guid}"
+@attribute [ExcludeFromInteractiveRouting]
+@layout PrintLayout
+@inject ISpaceService Spaces
+@inject ITimelineService Timeline
+@inject IPageService Pages
+@inject NavigationManager Nav
+
+<PageTitle>@(_space is null ? "Print" : $"{_space.Name} · book")</PageTitle>
+
+@if (_space is not null)
+{
+    <div class="print-body">
+        <div class="print-bar">
+            <button type="button" class="btn btn-primary" onclick="window.print()"><Icon Name="print" Size="16" />Print the book</button>
+            <span class="muted">@_space.Emoji @_space.Name · @_models.Count page@(_models.Count == 1 ? "" : "s") · @_models.Sum(m => m.SheetCount) A4 sheets</span>
+        </div>
+        @if (_models.Count == 0)
+        {
+            <EmptyState IconName="book" Title="No pages in this range" />
+        }
+        <div class="sheets" style="gap:36px">
+            @foreach (var m in _models)
+            {
+                <A4Sheet Model="m" Mode="SheetMode.Print" />
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    [SupplyParameterFromQuery(Name = "from")] public string? From { get; set; }
+    [SupplyParameterFromQuery(Name = "to")] public string? To { get; set; }
+
+    private Space? _space;
+    private readonly List<SheetModel> _models = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _space = await Spaces.GetAsync(Id);
+        if (_space is null) { Nav.NotFound(); return; }
+        DateOnly? from = DateOnly.TryParse(From, CultureInfo.InvariantCulture, out var f) ? f : null;
+        DateOnly? to = DateOnly.TryParse(To, CultureInfo.InvariantCulture, out var t) ? t : null;
+        var pages = (await Timeline.ListPagesAsync(Id))
+            .Where(p => (from is null || p.Date >= from) && (to is null || p.Date <= to))
+            .OrderBy(p => p.Date);
+        foreach (var p in pages)
+            if (await Pages.GetSheetModelAsync(p.Id) is { } m) _models.Add(m);
+    }
+}

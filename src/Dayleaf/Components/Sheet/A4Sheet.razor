@@ -1,0 +1,76 @@
+@using System.Globalization
+@* One rendering path for editor, thumbnails, print, share and HTML export.
+   No Blazor event handlers in here: the editor talks to it through dayleaf.js, so it also renders statically. *@
+
+<div class="sheets mode-@Mode.ToString().ToLowerInvariant() @Class"
+     data-page-id="@Model.PageId"
+     data-meta-editable="@(Mode == SheetMode.Edit && MetaEditable ? "true" : null)">
+    @for (var i = 0; i < Model.SheetCount; i++)
+    {
+        var sheet = i;
+        <article class="sheet theme-@Model.Theme" data-sheet="@sheet" aria-label="@($"{Model.SpaceName}, {Model.Date:MMMM d, yyyy}, sheet {sheet + 1}")">
+            <div class="sheet-deco" aria-hidden="true"></div>
+            @if (sheet == 0)
+            {
+                <header class="sh-head">
+                    <div class="sh-run">
+                        <span>@Model.SpaceName.ToUpperInvariant()&nbsp;&nbsp;·&nbsp;&nbsp;PAGE @Model.PageNumber</span>
+                        <span class="sh-brand">dayleaf</span>
+                    </div>
+                    <div class="sh-rule"></div>
+                    <span class="sh-day">@Model.Date.Day.ToString("00", CultureInfo.InvariantCulture)</span>
+                    <div class="sh-month">
+                        <span class="sh-month-name">@Model.Date.ToString("MMMM", CultureInfo.InvariantCulture)</span>
+                        <span class="sh-yw">
+                            <span class="sh-year">@Model.Date.Year</span><span class="sh-dot"> · </span><span class="sh-wd">@Model.Date.DayOfWeek.ToString().ToUpperInvariant()</span>
+                        </span>
+                    </div>
+                    @if (Model.Tags.Count > 0)
+                    {
+                        <div class="sh-tags">
+                            @for (var t = 0; t < Model.Tags.Count; t++)
+                            {
+                                <span class="sh-chip chip-@(t % 3)">@Model.Tags[t]</span>
+                            }
+                        </div>
+                    }
+                    <h1 class="sh-title" @key="TitleVersion" data-page-field="@(Mode == SheetMode.Edit && MetaEditable ? "title" : null)" data-placeholder="Name this day…">@Model.Title</h1>
+                </header>
+            }
+            else
+            {
+                <header class="sh-head sh-head-small">
+                    <div class="sh-run">
+                        <span>@Model.SpaceName.ToUpperInvariant()&nbsp;&nbsp;·&nbsp;&nbsp;PAGE @Model.PageNumber&nbsp;&nbsp;·&nbsp;&nbsp;SHEET @(sheet + 1)</span>
+                        <span class="sh-brand">@Model.Date.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)</span>
+                    </div>
+                    <div class="sh-rule"></div>
+                </header>
+            }
+
+            @foreach (var se in Model.Elements)
+            {
+                if (se.Element.Sheet != sheet) continue;
+                <ElementView @key="se.Element.Id" Item="se" Model="Model" Mode="Mode" Selected="se.Element.Id == SelectedId" />
+            }
+
+            <footer class="sh-foot">
+                <div class="sh-foot-rule"></div>
+                <div class="sh-foot-row">
+                    <span>@Model.SpaceEmoji @Model.SpaceName</span>
+                    <span>@Model.Date.ToString("ddd · MMM d, yyyy", CultureInfo.InvariantCulture)&nbsp;&nbsp;·&nbsp;&nbsp;<strong>@Model.PageNumber</strong>@(Model.SheetCount > 1 ? $"  ·  {sheet + 1}/{Model.SheetCount}" : "")</span>
+                </div>
+            </footer>
+        </article>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SheetModel Model { get; set; } = default!;
+    [Parameter] public SheetMode Mode { get; set; } = SheetMode.View;
+    [Parameter] public Guid? SelectedId { get; set; }
+    [Parameter] public bool MetaEditable { get; set; }
+    [Parameter] public string? Class { get; set; }
+    /// <summary>Bumped after an inline title edit so the edited DOM node is replaced, not patched.</summary>
+    [Parameter] public int TitleVersion { get; set; }
+}

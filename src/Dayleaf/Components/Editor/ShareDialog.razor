@@ -1,0 +1,71 @@
+@inject IPageService Pages
+@inject NavigationManager Nav
+@inject ToastService Toasts
+@inject IJSRuntime JS
+
+<Modal Open="Open" OpenChanged="OpenChanged" Title="Share & export">
+    <div class="share-box">
+        <label class="toggle">
+            <span>
+                <strong style="display:block">Public link</strong>
+                <span class="hint">Anyone with the link can view this page (read-only). Turn it off and the old link stops working.</span>
+            </span>
+            <input type="checkbox" checked="@(_token is not null)" @onchange="ToggleAsync" aria-label="Public link" />
+        </label>
+        @if (_token is not null)
+        {
+            <div class="share-url">
+                <input class="input" readonly value="@Url" aria-label="Share link" />
+                <button type="button" class="btn btn-secondary" @onclick="CopyAsync"><Icon Name="copy" Size="16" />Copy</button>
+            </div>
+            <a class="btn btn-ghost" href="@($"/p/{_token}")" target="_blank" rel="noopener"><Icon Name="eye" Size="16" />Open the public page</a>
+        }
+        <div class="smallcaps" style="margin-top:6px">Export this page</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <a class="btn btn-secondary" href="@($"/print/page/{PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />PDF / Print</a>
+            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.html")" download><Icon Name="file" Size="16" />HTML file</a>
+            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.dayleaf")" download style="grid-column:span 2"><Icon Name="download" Size="16" />.dayleaf (move to another notebook)</a>
+        </div>
+        <p class="hint" style="margin:0">PDF: choose <strong>Save as PDF</strong> in the print dialog. Each A4 sheet becomes one page, with no margins.</p>
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Parameter] public Guid PageId { get; set; }
+    [Parameter] public string? ShareToken { get; set; }
+    [Parameter] public EventCallback<string?> ShareTokenChanged { get; set; }
+
+    private string? _token;
+    private bool _wasOpen;
+    private string Url => Nav.ToAbsoluteUri($"/p/{_token}").ToString();
+
+    protected override void OnParametersSet()
+    {
+        if (Open && !_wasOpen) _token = ShareToken;
+        _wasOpen = Open;
+    }
+
+    private async Task ToggleAsync(ChangeEventArgs e)
+    {
+        if (e.Value is true)
+        {
+            _token = await Pages.EnableShareAsync(PageId);
+            Toasts.Success("Public link is on");
+        }
+        else
+        {
+            await Pages.DisableShareAsync(PageId);
+            _token = null;
+            Toasts.Show("Public link turned off — the old link no longer works");
+        }
+        await ShareTokenChanged.InvokeAsync(_token);
+    }
+
+    private async Task CopyAsync()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", Url);
+        Toasts.Success("Link copied");
+    }
+}

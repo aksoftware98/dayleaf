@@ -1,0 +1,60 @@
+@inject ITimelineService Timeline
+
+<Modal Open="Open" OpenChanged="OpenChanged" Title="Link a page" Wide="true">
+    <div class="searchbox" style="min-width:0">
+        <Icon Name="search" Size="16" />
+        <input type="search" placeholder="Search by title, space or date (e.g. june 2025)" aria-label="Search pages" @bind="_q" @bind:event="oninput" @bind:after="SearchAsync" />
+    </div>
+    <div class="picker-list">
+        @foreach (var r in _results)
+        {
+            <button type="button" class="picker-item" @onclick="() => Pick(r)">
+                @if (r.PhotoIds.Count > 0)
+                {
+                    <img src="/media/@r.PhotoIds[0].ToString("N")" alt="" loading="lazy" />
+                }
+                else
+                {
+                    <span class="picker-ico">@r.SpaceEmoji</span>
+                }
+                <span style="min-width:0">
+                    <strong>@(string.IsNullOrWhiteSpace(r.Title) ? "Untitled page" : r.Title)</strong>
+                    <small>@r.SpaceEmoji @r.SpaceName · @r.Date.ToString("ddd, MMM d, yyyy", CultureInfo.InvariantCulture) · Page @r.Number</small>
+                </span>
+            </button>
+        }
+        @if (_results.Count == 0)
+        {
+            <p class="muted" style="margin:12px 0">No pages match.</p>
+        }
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Parameter] public Guid? ExcludePageId { get; set; }
+    [Parameter] public EventCallback<PageRef> OnPicked { get; set; }
+
+    private string? _q;
+    private List<PageRef> _results = [];
+    private bool _wasOpen;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Open && !_wasOpen)
+        {
+            _q = null;
+            await SearchAsync();
+        }
+        _wasOpen = Open;
+    }
+
+    private async Task SearchAsync() => _results = await Timeline.FindPagesAsync(_q, 40, ExcludePageId);
+
+    private async Task Pick(PageRef r)
+    {
+        await OpenChanged.InvokeAsync(false);
+        await OnPicked.InvokeAsync(r);
+    }
+}

@@ -1,0 +1,50 @@
+@page "/p/{Token}"
+@attribute [AllowAnonymous]
+@attribute [ExcludeFromInteractiveRouting]
+@layout PrintLayout
+@inject IPageService Pages
+@inject NavigationManager Nav
+
+<PageTitle>@(_model is null ? "Dayleaf" : $"{(string.IsNullOrWhiteSpace(_model.Title) ? _model.Date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture) : _model.Title)} · {_model.SpaceName}")</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex" />
+    @if (_model is not null)
+    {
+        <meta property="og:title" content="@(string.IsNullOrWhiteSpace(_model.Title) ? _model.SpaceName : _model.Title)" />
+        <meta property="og:description" content="@($"{_model.SpaceEmoji} {_model.SpaceName} · {_model.Date.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture)}")" />
+    }
+</HeadContent>
+
+@if (_model is not null)
+{
+    <main class="share-page">
+        <div class="share-head">
+            <span style="font-size:28px">@_model.SpaceEmoji</span>
+            <span style="display:flex;flex-direction:column">
+                <strong style="font-family:var(--font-display);font-size:20px;font-weight:600">@_model.SpaceName</strong>
+                <span class="muted" style="font-size:13px">@_model.Date.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture) · Page @_model.PageNumber</span>
+            </span>
+            <button type="button" class="btn btn-primary" onclick="window.print()"><Icon Name="download" Size="16" />Download PDF</button>
+        </div>
+        <div class="share-fit">
+            <A4Sheet Model="_model" Mode="SheetMode.View" />
+        </div>
+        <p class="share-foot">made with dayleaf · a page for every day</p>
+    </main>
+}
+
+@code {
+    [Parameter] public string Token { get; set; } = "";
+    private SheetModel? _model;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var page = await Pages.GetByShareTokenAsync(Token);
+        if (page is null) { Nav.NotFound(); return; }
+        _model = await Pages.GetSheetModelAsync(page.Id);
+        if (_model is null) { Nav.NotFound(); return; }
+        // Linked pages aren't public: render them as plain cards without their photos.
+        foreach (var key in _model.LinkCards.Keys.ToList())
+            if (_model.LinkCards[key] is { } c) _model.LinkCards[key] = c with { Url = "#", PhotoId = null };
+    }
+}

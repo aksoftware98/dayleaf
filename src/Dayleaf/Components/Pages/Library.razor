@@ -1,0 +1,166 @@
+@page "/library"
+@inject ISpaceService Spaces
+@inject IMediaService Media
+@inject Dayleaf.Services.Export.DayleafImporter Importer
+@inject DayleafPaths Paths
+@inject ToastService Toasts
+@inject AppEvents Events
+
+<PageTitle>Library · Dayleaf</PageTitle>
+
+<div class="page-wrap">
+    <header style="display:flex;flex-direction:column;gap:6px">
+        <h1 class="page-title">Library</h1>
+        <p class="muted" style="margin:0">Back up, move or share your notebook as a single <strong>.dayleaf</strong> file — a zip with your pages and full-quality photos inside.</p>
+    </header>
+
+    <div class="panel-grid">
+        <section class="panel">
+            <h2>Export</h2>
+            <p>Everything, in one file. Keep it somewhere safe.</p>
+            <a class="btn btn-primary" href="/export/library.dayleaf" download><Icon Name="download" Size="16" />Export the whole library</a>
+            @if (_spaces.Count > 0)
+            {
+                <div class="smallcaps" style="margin-top:6px">Or one space</div>
+                <div class="list-rows">
+                    @foreach (var s in _spaces)
+                    {
+                        <div class="list-row">
+                            <span style="font-size:22px">@s.Space.Emoji</span>
+                            <span style="flex:1;min-width:0"><strong>@s.Space.Name</strong><span class="muted" style="display:block;font-size:12px">@s.PageCount pages</span></span>
+                            <a class="btn btn-secondary btn-sm" href="@($"/export/space/{s.Space.Id}.dayleaf")" download><Icon Name="download" Size="14" />.dayleaf</a>
+                            <a class="btn btn-ghost btn-sm" href="@($"/print/space/{s.Space.Id}?auto=0")" target="_blank" rel="noopener"><Icon Name="print" Size="14" />Book</a>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="panel">
+            <h2>Import</h2>
+            <p>Bring in a .dayleaf file. Spaces are always added as new ones — nothing you have is overwritten. Locked sections stay locked.</p>
+            @if (_manifest is { Kind: "page" })
+            {
+                <label class="field">This file holds a single page. Put it in…
+                    <select class="select" @bind="_targetSpace">
+                        <option value="">Choose a space</option>
+                        @foreach (var s in _spaces)
+                        {
+                            <option value="@s.Space.Id">@s.Space.Emoji @s.Space.Name</option>
+                        }
+                    </select>
+                </label>
+                <div style="display:flex;gap:8px">
+                    <button type="button" class="btn btn-primary" disabled="@(string.IsNullOrEmpty(_targetSpace) || _busy)" @onclick="ImportPendingAsync">Import page</button>
+                    <button type="button" class="btn btn-ghost" @onclick="Reset">Cancel</button>
+                </div>
+            }
+            else
+            {
+                <div class="dropzone">
+                    <Icon Name="upload" Size="28" Stroke="1.6" />
+                    <strong>@(_busy ? "Importing…" : "Drop a .dayleaf file here, or click to choose")</strong>
+                    <span class="hint">Up to 2 GB</span>
+                    <InputFile accept=".dayleaf,.zip" OnChange="OnFileAsync" disabled="@_busy" aria-label="Choose a .dayleaf file" />
+                </div>
+            }
+            @if (_result is not null)
+            {
+                <div class="lock-explain" style="background:var(--forest-tint)"><Icon Name="tick" /><span>@_result</span></div>
+            }
+            @if (_error is not null)
+            {
+                <p class="error-text" role="alert">@_error</p>
+            }
+        </section>
+
+        <section class="panel">
+            <h2>Tidy up</h2>
+            <p>Remove photos that no page or space uses any more (for example after deleting pages).</p>
+            <button type="button" class="btn btn-secondary" disabled="@_busy" @onclick="CleanupAsync"><Icon Name="sparkle" Size="16" />Clean up unused photos</button>
+            <p class="hint">Your notebook lives in <code style="word-break:break-all">@Paths.DataDirectory</code>. A backup of the database is made every time Dayleaf starts.</p>
+        </section>
+    </div>
+</div>
+
+@code {
+    private List<SpaceSummary> _spaces = [];
+    private bool _busy;
+    private string? _result, _error, _pendingFile, _targetSpace;
+    private Dayleaf.Services.Export.ManifestDto? _manifest;
+
+    protected override async Task OnInitializedAsync() => _spaces = await Spaces.ListAsync();
+
+    private async Task OnFileAsync(InputFileChangeEventArgs e)
+    {
+        Reset();
+        _busy = true;
+        try
+        {
+            Directory.CreateDirectory(Paths.TempDirectory);
+            _pendingFile = Path.Combine(Paths.TempDirectory, $"import-{Guid.NewGuid():N}.dayleaf");
+            await using (var fs = File.Create(_pendingFile))
+            await using (var src = e.File.OpenReadStream(Dayleaf.Services.Export.DayleafImporter.MaxArchiveBytes))
+                await src.CopyToAsync(fs);
+
+            _manifest = await Importer.ReadManifestAsync(_pendingFile);
+            if (_manifest.Kind != "page") await ImportPendingAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            Cleanup();
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ImportPendingAsync()
+    {
+        if (_pendingFile is null) return;
+        _busy = true;
+        try
+        {
+            Guid? target = Guid.TryParse(_targetSpace, out var t) ? t : null;
+            var summary = await Importer.ImportAsync(_pendingFile, target);
+            _result = summary.Message;
+            Toasts.Success(summary.Message);
+            Events.NotifySpacesChanged();
+            _spaces = await Spaces.ListAsync();
+            _manifest = null;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            Cleanup();
+            _busy = false;
+        }
+    }
+
+    private void Reset()
+    {
+        _result = _error = null;
+        _manifest = null;
+        _targetSpace = null;
+        Cleanup();
+    }
+
+    private void Cleanup()
+    {
+        if (_pendingFile is not null && File.Exists(_pendingFile)) File.Delete(_pendingFile);
+        _pendingFile = null;
+    }
+
+    private async Task CleanupAsync()
+    {
+        _busy = true;
+        var n = await Media.CleanupOrphansAsync();
+        _busy = false;
+        Toasts.Success(n == 0 ? "Nothing to clean up" : $"Removed {n} unused photo{(n == 1 ? "" : "s")}");
+    }
+}
