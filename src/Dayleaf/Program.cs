@@ -50,6 +50,7 @@ builder.Services.AddScoped<SeedService>();
 builder.Services.AddScoped<DayleafExporter>();
 builder.Services.AddScoped<DayleafImporter>();
 builder.Services.AddScoped<HtmlPageExporter>();
+builder.Services.AddSingleton<PdfRenderer>();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AppEvents>();
 

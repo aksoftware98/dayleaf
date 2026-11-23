@@ -12,7 +12,8 @@
 {
     <div class="print-body">
         <div class="print-bar">
-            <button type="button" class="btn btn-primary" onclick="window.print()"><Icon Name="print" Size="16" />Print the book</button>
+            <a class="btn btn-primary" href="@PdfUrl" download><Icon Name="download" Size="16" />Download book PDF</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />Print</button>
             <span class="muted">@_space.Emoji @_space.Name · @_models.Count page@(_models.Count == 1 ? "" : "s") · @_models.Sum(m => m.SheetCount) A4 sheets</span>
         </div>
         @if (_models.Count == 0)
@@ -34,6 +35,7 @@
     [SupplyParameterFromQuery(Name = "to")] public string? To { get; set; }
 
     private Space? _space;
+    private string PdfUrl => $"/export/space/{Id}.pdf" + (From is null ? "" : $"?from={From}") + (To is null ? "" : $"{(From is null ? "?" : "&")}to={To}");
     private readonly List<SheetModel> _models = [];
 
     protected override async Task OnInitializedAsync()

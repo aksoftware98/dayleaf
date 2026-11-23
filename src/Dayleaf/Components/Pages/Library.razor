@@ -29,7 +29,7 @@
                             <span style="font-size:22px">@s.Space.Emoji</span>
                             <span style="flex:1;min-width:0"><strong>@s.Space.Name</strong><span class="muted" style="display:block;font-size:12px">@s.PageCount pages</span></span>
                             <a class="btn btn-secondary btn-sm" href="@($"/export/space/{s.Space.Id}.dayleaf")" download><Icon Name="download" Size="14" />.dayleaf</a>
-                            <a class="btn btn-ghost btn-sm" href="@($"/print/space/{s.Space.Id}?auto=0")" target="_blank" rel="noopener"><Icon Name="print" Size="14" />Book</a>
+                            <a class="btn btn-ghost btn-sm" href="@($"/export/space/{s.Space.Id}.pdf")" download><Icon Name="book" Size="14" />Book PDF</a>
                         </div>
                     }
                 </div>

@@ -10,8 +10,9 @@
 {
     <div class="print-body">
         <div class="print-bar">
-            <button type="button" class="btn btn-primary" onclick="window.print()"><Icon Name="print" Size="16" />Print / Save as PDF</button>
-            <span class="muted">Choose <strong>Save as PDF</strong>, paper A4, margins <strong>None</strong>.</span>
+            <a class="btn btn-primary" href="@($"/export/page/{Id}.pdf")" download><Icon Name="download" Size="16" />Download PDF</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />Print</button>
+            <span class="muted">Printing yourself? Set paper <strong>A4</strong>, margins <strong>None</strong>, scale <strong>100%</strong>.</span>
             <a class="btn btn-ghost" href="@($"/export/page/{Id}.html")" download>Download HTML</a>
         </div>
         <A4Sheet Model="_model" Mode="SheetMode.Print" />

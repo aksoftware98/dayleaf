@@ -24,10 +24,11 @@
                 <strong style="font-family:var(--font-display);font-size:20px;font-weight:600">@_model.SpaceName</strong>
                 <span class="muted" style="font-size:13px">@_model.Date.ToString("dddd, MMMM d, yyyy", CultureInfo.InvariantCulture) · Page @_model.PageNumber</span>
             </span>
-            <button type="button" class="btn btn-primary" onclick="window.print()"><Icon Name="download" Size="16" />Download PDF</button>
+            <a class="btn btn-primary" href="@($"/p/{Token}.pdf")" download><Icon Name="download" Size="16" />Download PDF</a>
+            <button type="button" class="btn btn-secondary" onclick="window.print()"><Icon Name="print" Size="16" />Print</button>
         </div>
         <div class="share-fit">
-            <A4Sheet Model="_model" Mode="SheetMode.View" />
+            <A4Sheet Model="_model" Mode="SheetMode.Print" />
         </div>
         <p class="share-foot">made with dayleaf · a page for every day</p>
     </main>

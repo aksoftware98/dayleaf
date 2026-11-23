@@ -29,7 +29,7 @@
                     <div class="ph-frame">
                         @if (e.MediaId is { } mid)
                         {
-                            <img src="@Model.MediaUrl(mid)" alt="@(p.Alt ?? p.Caption ?? "")" loading="lazy" draggable="false"
+                            <img src="@Model.MediaUrl(mid)" alt="@(p.Alt ?? p.Caption ?? "")" loading="@Loading" draggable="false"
                                  style="object-position:@F(p.FocusX)% @F(p.FocusY)%;transform-origin:@F(p.FocusX)% @F(p.FocusY)%;transform:scale(@F(p.Zoom))" />
                         }
                     </div>
@@ -101,7 +101,7 @@
                         <span class="plink-thumb">
                             @if (card.PhotoId is { } ph)
                             {
-                                <img src="@Model.MediaUrl(ph)" alt="" loading="lazy" draggable="false" />
+                                <img src="@Model.MediaUrl(ph)" alt="" loading="@Loading" draggable="false" />
                             }
                             else
                             {
@@ -213,6 +213,9 @@
     [Parameter, EditorRequired] public SheetModel Model { get; set; } = default!;
     [Parameter] public SheetMode Mode { get; set; }
     [Parameter] public bool Selected { get; set; }
+
+    // Print/share/PDF must have every photo loaded before the page is printed; lazy images below the fold come out blank.
+    private string Loading => Mode == SheetMode.Print ? "eager" : "lazy";
 
     private bool LockAspect => Item.Data is EmojiData || Item.Data is PhotoData { Style: "round" };
 

@@ -45,7 +45,8 @@ else if (_space is not null)
                     {
                         <button type="button" class="icon-btn" aria-label="Undo" title="Undo (Ctrl+Z)" disabled="@(_undo.Count == 0)" @onclick="UndoAsync"><Icon Name="undo" /></button>
                     }
-                    <a class="btn btn-secondary" href="@($"/print/page/{_model.PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Print A4</a>
+                    <a class="btn btn-secondary" href="@($"/export/page/{_model.PageId}.pdf")" download title="Exact A4, one page per sheet"><Icon Name="download" Size="16" />PDF</a>
+                    <a class="icon-btn" href="@($"/print/page/{_model.PageId}")" target="_blank" rel="noopener" aria-label="Print" title="Print"><Icon Name="print" /></a>
                     <button type="button" class="btn btn-primary" @onclick="() => _share = true"><Icon Name="link" Size="16" />Share</button>
                 }
             </div>

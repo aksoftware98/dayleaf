@@ -542,3 +542,10 @@ h1:focus { outline: none; box-shadow: none; }
 .swatches-sm .swatch { width: 28px; height: 28px; }
 .swatch-theme { border-radius: 9px; }
 .themes { max-height: none; }
+
+/* ── print hardening: nothing but the sheets, no centering wrappers, no app chrome ── */
+@media print {
+  .print-body, .share-page, .share-fit, .export-wrap { display: block !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; }
+  .print-body .sheets, .share-fit .sheets { margin: 0 !important; }
+  #blazor-error-ui, #components-reconnect-modal, .modal, .modal-backdrop, .toasts { display: none !important; }
+}

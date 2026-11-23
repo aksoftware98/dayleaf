@@ -22,11 +22,12 @@
         }
         <div class="smallcaps" style="margin-top:6px">Export this page</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <a class="btn btn-secondary" href="@($"/print/page/{PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />PDF / Print</a>
+            <a class="btn btn-secondary" href="@($"/export/page/{PageId}.pdf")" download><Icon Name="download" Size="16" />PDF (A4)</a>
+            <a class="btn btn-secondary" href="@($"/print/page/{PageId}")" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Print</a>
             <a class="btn btn-secondary" href="@($"/export/page/{PageId}.html")" download><Icon Name="file" Size="16" />HTML file</a>
             <a class="btn btn-secondary" href="@($"/export/page/{PageId}.dayleaf")" download style="grid-column:span 2"><Icon Name="download" Size="16" />.dayleaf (move to another notebook)</a>
         </div>
-        <p class="hint" style="margin:0">PDF: choose <strong>Save as PDF</strong> in the print dialog. Each A4 sheet becomes one page, with no margins.</p>
+        <p class="hint" style="margin:0"><strong>PDF (A4)</strong> is made on this computer: exactly one full-bleed A4 page per sheet. Printing yourself? Use margins <strong>None</strong> and scale <strong>100%</strong>.</p>
     </div>
 </Modal>
 

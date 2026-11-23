@@ -113,6 +113,34 @@ public sealed class LockFlowTests(ITestOutputHelper output) : IAsyncLifetime
         await Assert.ThrowsAsync<SectionLockedException>(() => pages.DeleteElementAsync(element.Id));
     }
 
+    [Fact]
+    public async Task Page_pdf_is_exactly_one_full_bleed_A4_page()
+    {
+        if (_browser is null) { output.WriteLine("SKIPPED: no Chromium-based browser available."); return; }
+
+        Guid pageId;
+        using (var scope = _app!.Services.CreateScope())
+        {
+            var spaces = scope.ServiceProvider.GetRequiredService<ISpaceService>();
+            var pages = scope.ServiceProvider.GetRequiredService<IPageService>();
+            var space = await spaces.CreateAsync("PDF Test", "📄", "sea", null, "ocean");
+            var page = await pages.GetOrCreatePageAsync(space.Id, new DateOnly(2026, 1, 2), "A full-bleed page");
+            await pages.AddElementAsync(page.Id, ElementKind.Text, new TextData { Html = "<p>hello</p>" });
+            pageId = page.Id;
+        }
+
+        using var http = new HttpClient { BaseAddress = _app.ClientOptions.BaseAddress };
+        var res = await http.GetAsync($"/export/page/{pageId}.pdf");
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        Assert.Equal("application/pdf", res.Content.Headers.ContentType?.MediaType);
+        var pdf = System.Text.Encoding.Latin1.GetString(await res.Content.ReadAsByteArrayAsync());
+
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(pdf, @"/Type\s*/Page[^s]"));
+        var box = System.Text.RegularExpressions.Regex.Match(pdf, @"/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)");
+        Assert.InRange(double.Parse(box.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), 594, 596); // 210 mm
+        Assert.InRange(double.Parse(box.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), 841, 843); // 297 mm
+    }
+
     private static async Task ClickUntilAsync(ILocator target, ILocator appears, int attempts = 40)
     {
         for (var i = 0; i < attempts; i++)

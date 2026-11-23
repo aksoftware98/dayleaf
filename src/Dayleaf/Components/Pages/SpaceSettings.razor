@@ -88,7 +88,10 @@ else
                         <label class="field">From<input class="input" type="date" @bind="_from" /></label>
                         <label class="field">To<input class="input" type="date" @bind="_to" /></label>
                     </div>
-                    <a class="btn btn-secondary" href="@BookUrl" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Open book print</a>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <a class="btn btn-primary" href="@BookPdfUrl" download><Icon Name="download" Size="16" />Download book PDF</a>
+                        <a class="btn btn-secondary" href="@BookUrl" target="_blank" rel="noopener"><Icon Name="print" Size="16" />Preview & print</a>
+                    </div>
                 </section>
 
                 <section class="panel danger-zone">
@@ -113,6 +116,7 @@ else
     private string? _description, _confirm;
     private DateOnly? _from, _to;
 
+    private string BookPdfUrl => $"/export/space/{_space!.Id}.pdf?" + (_from is { } f ? $"from={f:yyyy-MM-dd}&" : "") + (_to is { } t ? $"to={t:yyyy-MM-dd}" : "");
     private string BookUrl => $"/print/space/{_space!.Id}?auto=0" + (_from is { } f ? $"&from={f:yyyy-MM-dd}" : "") + (_to is { } t ? $"&to={t:yyyy-MM-dd}" : "");
 
     protected override async Task OnParametersSetAsync()

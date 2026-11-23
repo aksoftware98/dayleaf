@@ -62,6 +62,6 @@ dotnet test
 
 ## Export
 
-- **PDF**: Print A4 → *Save as PDF* (one sheet per page, no margins). Whole spaces print as a book from Space settings or the Library.
+- **PDF**: the **PDF** button makes the file on your computer (headless Edge or Chrome): exactly one full-bleed A4 page per sheet, no white borders. Whole spaces download as a book PDF from Space settings or the Library. Printing from the browser instead? Set margins to *None* and scale to *100%*.
 - **HTML**: a single self-contained file per page.
 - **.dayleaf**: a zip (`manifest.json`, `data.json`, `media/`) for the whole library, a space, or one page. Import from the Library screen.
